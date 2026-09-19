@@ -62,7 +62,7 @@
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/krishisetu.git
+git clone https://github.com/raghudipghosh862-glitch/krishisetu.git
 cd krishisetu
 ```
 
