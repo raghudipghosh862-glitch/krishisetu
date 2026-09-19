@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiTransit | Hire Transport</title>
+    <link rel="stylesheet" href="stylee.css">
+    <style>
+        .marketplace-container {
+            padding: 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .company-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .company-info h3 { margin: 0 0 8px 0; color: #111827; }
+        .company-meta { color: #6B7280; font-size: 0.9rem; display: flex; gap: 16px; }
+        .price-badge {
+            background: #DEF7EC; color: #03543F; padding: 6px 12px;
+            border-radius: 20px; font-weight: 800; font-size: 0.9rem;
+        }
+        .btn-book {
+            background: #113027; color: #E5A93C; padding: 12px 24px;
+            border: none; border-radius: 6px; font-weight: 700; cursor: pointer;
+        }
+    </style>
+</head>
+<body style="background-color: #F3F4F6; margin: 0; font-family: sans-serif;">
+
+    <nav style="background: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB;">
+        <div style="color: #113027; font-size: 1.5rem; font-weight: 800;">🚚 KrishiTransit Marketplace</div>
+        <div style="display: flex; gap: 20px;">
+            <a href="TransitHub.html" style="color: #6B7280; text-decoration: none; font-weight: 600;">← Back to Hub</a>
+        </div>
+    </nav>
+
+    <div class="marketplace-container">
+        <h2 style="color: #111827; margin-top: 0;">Available Fleet Partners</h2>
+        <p style="color: #6B7280; margin-bottom: 32px;">Select a verified transport company for your dispatch.</p>
+
+        <div id="marketplaceList">
+            <!-- Dynamic companies will load here -->
+            <p>Loading available trucks...</p>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: white; padding: 32px; border-radius: 12px; width: 100%; max-width: 500px;">
+            <h3 style="margin-top: 0;">Dispatch Request</h3>
+            <form id="bookingForm">
+                <input type="hidden" id="selectedCompanyId">
+                <input type="hidden" id="selectedRate">
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Pickup Location</label>
+                    <input type="text" id="pickupLoc" class="form-control" placeholder="e.g. Node 42 Hub" style="width: 100%; padding: 10px;" required>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Dropoff Location (Mandi)</label>
+                    <input type="text" id="dropoffLoc" class="form-control" placeholder="e.g. City Central Market" style="width: 100%; padding: 10px;" required>
+                </div>
+                <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Total Weight (kg)</label>
+                        <input type="number" id="cargoWeight" class="form-control" style="width: 100%; padding: 10px;" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Est. Distance (km)</label>
+                        <input type="number" id="estDistance" class="form-control" style="width: 100%; padding: 10px;" oninput="calculateCost()" required>
+                    </div>
+                </div>
+
+                <div style="background: #F3F4F6; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Total Estimated Cost:</span>
+                        <strong id="displayTotal">₹ 0.00</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; color: #991B1B;">
+                        <span>Required Escrow Advance (30%):</span>
+                        <strong id="displayAdvance">₹ 0.00</strong>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button type="button" onclick="document.getElementById('bookingModal').style.display='none'" style="flex: 1; padding: 12px; border: 1px solid #E5E7EB; background: white; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    <button type="submit" style="flex: 2; padding: 12px; background: #113027; color: #E5A93C; border: none; border-radius: 6px; font-weight: 700; cursor: pointer;">Request Dispatch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Load Marketplace
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/get-marketplace/");
+                if (response.ok) {
+                    const companies = await response.json();
+                    const list = document.getElementById('marketplaceList');
+                    list.innerHTML = '';
+                    
+                    companies.forEach(comp => {
+                        const card = `
+                            <div class="company-card">
+                                <div class="company-info">
+                                    <h3>${comp.company_name} <span style="font-size: 0.9rem; color: #E5A93C;">★ ${comp.trust_rating}/5.0</span></h3>
+                                    <div class="company-meta">
+                                        <span>📍 ${comp.location}</span>
+                                        <span>🚚 Fleet: ${comp.fleet_size} Trucks</span>
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div class="price-badge" style="margin-bottom: 12px;">₹${comp.rate_per_km} / km</div>
+                                    <button class="btn-book" onclick="openBooking(${comp.id}, ${comp.rate_per_km})">Book Truck</button>
+                                </div>
+                            </div>
+                        `;
+                        list.insertAdjacentHTML('beforeend', card);
+                    });
+                }
+            } catch (e) { console.error(e); }
+        });
+
+        // Booking Logic
+        function openBooking(companyId, ratePerKm) {
+            document.getElementById('selectedCompanyId').value = companyId;
+            document.getElementById('selectedRate').value = ratePerKm;
+            document.getElementById('bookingModal').style.display = 'flex';
+        }
+
+        function calculateCost() {
+            const distance = document.getElementById('estDistance').value;
+            const rate = document.getElementById('selectedRate').value;
+            if (distance && rate) {
+                const total = (distance * rate).toFixed(2);
+                const advance = (total * 0.30).toFixed(2); // 30% Advance
+                document.getElementById('displayTotal').innerText = `₹ ${total}`;
+                document.getElementById('displayAdvance').innerText = `₹ ${advance}`;
+            }
+        }
+
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get the Group Leader's ID from session
+            const leaderSession = JSON.parse(localStorage.getItem('krishi_session'));
+            if (!leaderSession) {
+                alert("Please log into your Group Leader account first!");
+                return;
+            }
+
+            const rate = document.getElementById('selectedRate').value;
+            const distance = document.getElementById('estDistance').value;
+            const totalCost = (distance * rate).toFixed(2);
+            const advancePayment = (totalCost * 0.30).toFixed(2);
+
+            const payload = {
+                group_leader: leaderSession.leader_id || 1, // Fallback to 1 if session key differs
+                transport_company: document.getElementById('selectedCompanyId').value,
+                pickup_location: document.getElementById('pickupLoc').value,
+                dropoff_location: document.getElementById('dropoffLoc').value,
+                cargo_weight_kg: document.getElementById('cargoWeight').value,
+                estimated_distance_km: distance,
+                total_cost: totalCost,
+                advance_payment: advancePayment,
+                status: 'PENDING'
+            };
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/book-trip/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    alert("Dispatch Requested! The Transport Company will review it shortly.");
+                    document.getElementById('bookingModal').style.display = 'none';
+                    document.getElementById('bookingForm').reset();
+                } else {
+                    console.error(await response.json());
+                    alert("Error booking trip.");
+                }
+            } catch (e) { alert("Network error."); }
+        });
+    </script>
+</body>
+</html>

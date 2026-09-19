@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSetu | Group Leader Portal</title>
+    <link rel="icon" href="data:,">
+    
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="stylee.css">
+
+    <style>
+        /* ========================================= */
+        /* 1. LOGIN OVERLAY STYLES                   */
+        /* ========================================= */
+        #loginOverlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.9)), 
+                        url('https://images.unsplash.com/photo-1592982537447-6f2a6a0c5c13?q=80&w=2070') center/cover;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 420px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            overflow: auto;
+            max-height: 90vh;
+            transform: translateY(-20px);
+            animation: slideIn 0.4s forwards ease-out;
+        }
+        .auth-card::-webkit-scrollbar { display: none; }
+
+        @keyframes slideIn {
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .auth-header {
+            background: linear-gradient(135deg, var(--krishi-green, #1B4D3E) 0%, #113027 100%);
+            color: #FFFFFF;
+            text-align: center;
+            padding: 32px 24px;
+        }
+
+        .auth-header h1 {
+            font-size: 2rem;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .auth-header p {
+            color: #A7F3D0;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .auth-body { padding: 24px; }
+        
+        .form-group { margin-bottom: 20px; }
+        
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #F9FAFB;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            background-color: #FFFFFF;
+            border-color: var(--krishi-green, #1B4D3E);
+            box-shadow: 0 0 0 4px rgba(27, 77, 62, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--krishi-gold, #E5A93C);
+            color: var(--krishi-green, #1B4D3E);
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
+
+        .btn-submit:hover { background-color: #D97706; color: #FFFFFF; }
+
+        .error-msg {
+            color: #E02424;
+            background: #FDE8E8;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 16px;
+            text-align: center;
+            display: none;
+            border: 1px solid #F8B4B4;
+        }
+
+        /* ========================================= */
+        /* 2. PROFILE DASHBOARD STYLES               */
+        /* ========================================= */
+        #profileDashboard {
+            display: none; /* Hidden until login */
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--krishi-green, #1B4D3E) 0%, #113027 100%);
+            color: #FFFFFF;
+            padding: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 12px rgba(27, 77, 62, 0.15);
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background-color: var(--krishi-gold, #E5A93C);
+            color: var(--krishi-green, #1B4D3E);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-badge {
+            display: inline-block;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .member-list-container {
+            background: #FFFFFF;
+            border-radius: 8px;
+            border: 1px solid var(--border-color, #E5E7EB);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+
+        .member-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color, #E5E7EB);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-outline {
+            border: 2px solid var(--krishi-green, #1B4D3E);
+            color: var(--krishi-green, #1B4D3E);
+            background: transparent;
+            padding: 8px 16px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover { background: var(--krishi-green, #1B4D3E); color: #FFFFFF; }
+
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .data-table th { background-color: #F9FAFB; padding: 14px 20px; color: var(--text-muted, #6B7280); font-size: 0.85rem; border-bottom: 1px solid var(--border-color, #E5E7EB); }
+        .data-table td { padding: 16px 20px; border-bottom: 1px solid var(--border-color, #E5E7EB); font-size: 0.95rem; }
+
+        .farmer-name-cell { display: flex; align-items: center; gap: 12px; }
+        .farmer-initial {
+            width: 32px; height: 32px;
+            background-color: #E1EFFE; color: #1E429F;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem;
+        }
+
+        /* ========================================= */
+        /* 3. MODAL OVERLAY STYLES                   */
+        /* ========================================= */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+            z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-content {
+            background: #FFFFFF; width: 100%; max-width: 420px;
+            border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+            overflow: hidden; transform: translateY(-20px);
+            animation: modalSlideIn 0.3s forwards ease-out;
+        }
+        @keyframes modalSlideIn { to { transform: translateY(0); opacity: 1; } }
+        .modal-header {
+            background: linear-gradient(135deg, var(--krishi-green, #1B4D3E) 0%, #113027 100%);
+            color: #FFFFFF; padding: 24px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .close-btn {
+            background: rgba(255, 255, 255, 0.15); border: none;
+            width: 32px; height: 32px; border-radius: 50%; color: #FFFFFF;
+            font-size: 1.2rem; cursor: pointer;
+        }
+        .modal-body { padding: 32px 24px; }
+    </style>
+</head>
+<body>
+
+    <!-- ========================================= -->
+    <!-- 1. FULL SCREEN LOGIN OVERLAY              -->
+    <!-- ========================================= -->
+    <div id="loginOverlay">
+      <div class="auth-card">
+            <div class="auth-header">
+                <h1><span style="font-size: 2.2rem;">🌾</span> KrishiSetu</h1>
+                <p id="authSubtitle">Group Leader Authentication</p>
+            </div>
+            
+            <div class="auth-body">
+                <!-- ================= LOGIN FORM ================= -->
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>Registered Mobile Number</label>
+                        <input type="tel" id="phoneNumber" class="form-control" placeholder="10-digit number" required pattern="[0-9]{10}">
+                    </div>
+                    <div class="form-group">
+                        <label>Secure Password</label>
+                        <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Authenticate & Enter</button>
+                    <div id="errorText" class="error-msg">Invalid credentials. Please verify and try again.</div>
+                    
+                    <p style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: #4B5563;">
+                        Want to establish a new hub? <br>
+                        <a href="#" onclick="toggleAuthMode('signup')" style="color: var(--krishi-green, #1B4D3E); font-weight: 700; text-decoration: none;">Register as a Group Leader</a>
+                    </p>
+                </form>
+
+                <!-- ================= SIGN UP FORM (Hidden initially) ================= -->
+                <form id="signupForm" style="display: none;">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="regName" class="form-control" placeholder="e.g. Rajesh Kumar" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Mobile Number</label>
+                        <input type="tel" id="regPhone" class="form-control" placeholder="10-digit number" required pattern="[0-9]{10}">
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; font-size: 0.9rem; font-weight: 600; color: #374151; margin-bottom: 8px;">State</label>
+                            <input type="text" id="regState" class="form-control" placeholder="e.g. West Bengal" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; font-size: 0.9rem; font-weight: 600; color: #374151; margin-bottom: 8px;">District</label>
+                            <input type="text" id="regDistrict" class="form-control" placeholder="e.g. Hooghly" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Local Hub Address</label>
+                        <input type="text" id="regAddress" class="form-control" placeholder="Village / Panchayat Name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Create Secure Password</label>
+                        <input type="password" id="regPassword" class="form-control" placeholder="Minimum 6 characters" required minlength="6">
+                    </div>
+                    
+                    <button type="submit" class="btn-submit" style="background-color: #113027; color: #E5A93C;">Complete Registration</button>
+                    
+                    <p style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: #4B5563;">
+                        Already registered? <br>
+                        <a href="#" onclick="toggleAuthMode('login')" style="color: var(--krishi-green, #1B4D3E); font-weight: 700; text-decoration: none;">Login to your Hub</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- 2. MAIN PROFILE DASHBOARD                 -->
+    <!-- ========================================= -->
+    <div id="profileDashboard">
+        <!-- Navigation -->
+        <nav class="main-nav-bar">
+            <div class="nav-brand">🌾 KrishiSetu</div>
+            <div class="nav-links">
+                <a href="Index3.html">Home</a>
+                <a href="log-harvest.html">Log Harvest</a>
+                <a href="hyperlocal-pooling.html">Hyperlocal Pooling</a>
+                <a href="TransitHub.html">Transit Hub</a>
+                <a href="krishi-connect.html">Krishi Connect</a>
+                <a href="grievance.html">Grievance</a>
+                <a href="profile.html" class="active">Group Leader Profile</a>
+                <a href="escrow-payments.html" class="btn btn-secondary">Review Escrow Payments</a>
+                <button onclick="document.getElementById('passwordModal').style.display='flex'" style="background: transparent; color: #6B7280; border: 1px solid #E5E7EB; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">⚙️ Security</button>
+            </div>
+        </nav>
+
+        <main class="dashboard-container">
+            <!-- Profile Identity Header -->
+            <header class="profile-header">
+                <div class="profile-avatar">RG</div>
+                <div class="profile-info">
+                    <h1 style="color: white; font-size: 1.8rem; margin-bottom: 4px;">Raghudip Ghosh</h1>
+                    <p style="color: #A7F3D0; font-size: 1.05rem;">KrishiSetu Group Leader • West Bengal Hub</p>
+                    <div class="profile-badge">Pooling Node 42</div>
+                    <div class="profile-badge" style="background: rgba(229, 169, 60, 0.9); color: #113027;">Verified Account</div>
+                </div>
+            </header>
+
+            <!-- Leader Metrics -->
+            <div class="metrics-grid" style="margin-bottom: 32px;">
+                <div class="metric-card card-green">
+                    <h3>Total Network Volume</h3>
+                    <div class="metric-value" id="totalVolume">0<span style="font-size: 1rem; color: #6B7280;">Kg</span></div>
+                    <div class="metric-desc">Pooled across 45 dispatches</div>
+                </div>
+                <div class="metric-card card-gold">
+                    <h3>Farmers Onboarded</h3>
+                    <div class="metric-value" id="farmerCount">142</div>
+                    <div class="metric-desc">Offline marginal farmers digitized</div>
+                </div>
+                <div class="metric-card card-blue">
+                    <h3>Hub Trust Score</h3>
+                    <div class="metric-value">4.9<span style="font-size: 1rem; color: #6B7280;">/5</span></div>
+                    <div class="metric-desc">Grade Verification via Mandi Escrow</div>
+                </div>
+            </div>
+
+            <!-- Registered Farmers Roster -->
+            <section class="member-list-container">
+                <div class="member-header">
+                    <div>
+                        <h3 style="color: #111827; font-size: 1.2rem; margin-bottom: 4px;">Node 42 Member Roster</h3>
+                        <p style="color: #6B7280; font-size: 0.9rem;">Manage local farmers registered under your supervision.</p>
+                    </div>
+                    <button class="btn-outline" onclick="openModal()">+ Onboard New Farmer</button>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Farmer Details</th>
+                                <th>KrishiSetu ID</th>
+                                <th>Primary Crop</th>
+                                <th>Total Lifetime Yield</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rosterTableBody">
+                            <tr>
+                                <td>
+                                    <div class="farmer-name-cell">
+                                        <div class="farmer-initial">RP</div>
+                                        <div>
+                                            <strong>Ramesh Patil</strong><br>
+                                            <span style="font-size: 0.8rem; color: #6B7280;">+91 98765 *****</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="font-family: monospace; font-weight: 600;">F-9821</td>
+                                <td>Tomatoes</td>
+                                <td>1,240 kg</td>
+                                <td><span style="color: #0E9F6E; font-weight: 700; font-size: 0.85rem;">Active</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div> <!-- End Profile Dashboard -->
+
+
+    <!-- ========================================= -->
+    <!-- 3. FARMER ONBOARDING MODAL                -->
+    <!-- ========================================= -->
+    <div id="onboardModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0;"><span style="font-size: 1.5rem;">🧑‍🌾</span> Onboard Offline Farmer</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="onboardForm">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="newFarmerName" class="form-control" placeholder="e.g. Anil Desai" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile Number</label>
+                        <input type="tel" id="newFarmerPhone" class="form-control" placeholder="10-digit number" required pattern="[0-9]{10}">
+                    </div>
+                    <div class="form-group">
+                        <label>Primary Crop</label>
+                        <select id="newFarmerCrop" class="form-control" required>
+                            <option value="" disabled selected>Select a crop...</option>
+                            <option value="Tomatoes">🍅 Tomatoes</option>
+                            <option value="Onions">🧅 Onions</option>
+                            <option value="Potatoes">🥔 Potatoes</option>
+                            <option value="Wheat">🌾 Wheat</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-submit">Complete KYC & Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Universal Password Change Modal -->
+    <div id="passwordModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000;">
+        <div style="background: white; padding: 32px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="margin: 0; color: #111827;">Change Password</h3>
+                <button onclick="document.getElementById('passwordModal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            
+            <form id="passwordChangeForm">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Current Password</label>
+                    <input type="password" id="oldPass" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                </div>
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">New Password</label>
+                    <input type="password" id="newPass" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                </div>
+                <button type="submit" style="width: 100%; padding: 14px; background: #113027; color: #E5A93C; border: none; border-radius: 6px; font-weight: 800; cursor: pointer;">Update Security</button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- JAVASCRIPT LOGIC                          -->
+    <!-- ========================================= -->
+    <script>
+        // Universal Password Change Logic
+        document.getElementById('passwordChangeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const oldPass = document.getElementById('oldPass').value;
+            const newPass = document.getElementById('newPass').value;
+            
+            let role = '';
+            let userId = null;
+
+            // Auto-detect the user role based on active browser sessions
+            if (localStorage.getItem('krishi_session')) {
+                role = 'leader';
+                userId = JSON.parse(localStorage.getItem('krishi_session')).leader_id || 1; 
+            } else if (localStorage.getItem('company_session')) {
+                role = 'company';
+                userId = JSON.parse(localStorage.getItem('company_session')).company_id;
+            } else if (localStorage.getItem('driver_session')) {
+                role = 'driver';
+                userId = JSON.parse(localStorage.getItem('driver_session')).driver_id;
+            }
+
+            if (!userId) {
+                alert("Session error. Please log out and log back in.");
+                return;
+            }
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerText = "Updating...";
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/change-password/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        role: role, 
+                        user_id: userId, 
+                        old_password: oldPass, 
+                        new_password: newPass 
+                    })
+                });
+
+                if (response.ok) {
+                    alert("✅ Password successfully updated!");
+                    document.getElementById('passwordModal').style.display = 'none';
+                    this.reset();
+                } else {
+                    alert("❌ Update failed. Please ensure your current password is correct.");
+                }
+            } catch (error) {
+                alert("Network error. Cannot connect to server.");
+            } finally {
+                submitBtn.innerText = "Update Security";
+                submitBtn.disabled = false;
+            }
+        });
+        function toggleAuthMode(mode) {
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const authSubtitle = document.getElementById('authSubtitle');
+
+            if (mode === 'signup') {
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'block';
+                authSubtitle.innerText = "Group Leader KYC & Setup";
+            } else {
+                signupForm.style.display = 'none';
+                loginForm.style.display = 'block';
+                authSubtitle.innerText = "Group Leader Authentication";
+            }
+        }
+        // --- 1. Registration Logic ---
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const payload = {
+                full_name: document.getElementById('regName').value,
+                phone_number: document.getElementById('regPhone').value,
+                state: document.getElementById('regState').value,
+                district: document.getElementById('regDistrict').value,
+                address: document.getElementById('regAddress').value,
+                password: document.getElementById('regPassword').value
+            };
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/register-leader/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert("Registration successful! Your Group Leader account is active. Please log in.");
+                    toggleAuthMode('login');
+                    this.reset();
+                } else {
+                    const errorData = await response.json();
+                    alert("Registration failed. This phone number might already be registered.");
+                }
+            } catch (error) {
+                alert("Cannot connect to backend server.");
+            }
+        });
+        // ==========================================
+        // 2. LOGIN & SESSION LOGIC (Persistent)
+        // ==========================================
+        
+        // Helper function to load the dashboard UI
+        async function activateDashboard(userData) {
+            document.getElementById('loginOverlay').style.display = 'none';
+            const dashboard = document.getElementById('profileDashboard');
+            dashboard.style.display = 'block';
+            setTimeout(() => { dashboard.style.opacity = '1'; }, 50);
+
+            try {
+                if (userData.name) {
+                    document.querySelector('.profile-info h1').innerText = userData.name;
+                    const nameParts = userData.name.trim().split(' ');
+                    const initials = nameParts.length > 1 
+                        ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() 
+                        : userData.name.substring(0, 2).toUpperCase();
+                    document.querySelector('.profile-avatar').innerText = initials;
+                }
+                if (userData.state) {
+                    document.querySelector('.profile-info p').innerText = `KrishiSetu Group Leader • ${userData.state} Hub`;
+                }
+            } catch (e) { console.warn("Formatting error:", e); }
+
+            // Fetch Real Farmers
+            try {
+                const farmerResponse = await fetch("http://127.0.0.1:8000/api/get-farmers/");
+                if (farmerResponse.ok) {
+                    const farmers = await farmerResponse.json();
+                    const tableBody = document.getElementById('rosterTableBody');
+                    tableBody.innerHTML = ''; 
+                    
+                    farmers.forEach(farmer => {
+                        const fInitials = farmer.full_name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                        const row = `
+                            <tr>
+                                <td>
+                                    <div class="farmer-name-cell">
+                                        <div class="farmer-initial" style="background: #DEF7EC; color: #03543F;">${fInitials}</div>
+                                        <div>
+                                            <strong>${farmer.full_name}</strong><br>
+                                            <span style="font-size: 0.8rem; color: #6B7280;">+91 ${farmer.phone_number.substring(0,5)} *****</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="font-family: monospace; font-weight: 600;">${farmer.krishi_id}</td>
+                                <td>${farmer.primary_crop}</td>
+                                <td><strong style="color: #113027;">${farmer.total_yield} kg</strong></td>
+                                <td><span style="color: #0E9F6E; font-weight: 700; font-size: 0.85rem;">Active</span></td>
+                            </tr>
+                        `;
+                        tableBody.insertAdjacentHTML('beforeend', row);
+                    });
+                    document.getElementById('farmerCount').innerText = farmers.length;
+                }
+            } catch (e) { console.error("Error loading farmers.", e); }
+
+            // Fetch Volume Metrics
+            try {
+                const metricResponse = await fetch("http://127.0.0.1:8000/api/dashboard-metrics/");
+                if (metricResponse.ok) {
+                    const metricData = await metricResponse.json();
+                    document.getElementById('totalVolume').innerHTML = 
+                        `${metricData.total_volume_kg} <span style="font-size: 1rem; color: #6B7280;">kg</span>`;
+                }
+            } catch (e) { console.error("Error loading metrics.", e); }
+        }
+
+        // Check if user is already logged in when the page loads
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedSession = localStorage.getItem('krishi_session');
+            if (savedSession) {
+                activateDashboard(JSON.parse(savedSession));
+            }
+        });
+
+        // Form Submit Event
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const phone = document.getElementById('phoneNumber').value;
+            const password = document.getElementById('password').value;
+            const errorText = document.getElementById('errorText');
+            errorText.style.display = 'none';
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/login-leader/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone_number: phone, password: password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Save session to browser storage!
+                    localStorage.setItem('krishi_session', JSON.stringify(data));
+                    activateDashboard(data);
+                } else {
+                    errorText.style.display = 'block';
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                alert("Cannot connect to backend server.");
+            }
+        });
+
+
+        // --- 2. Modal & Onboarding Logic ---
+        function openModal() { document.getElementById('onboardModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('onboardModal').style.display = 'none'; }
+
+        document.getElementById('onboardForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // 1. Get the data from the inputs
+            const name = document.getElementById('newFarmerName').value;
+            const phone = document.getElementById('newFarmerPhone').value;
+            const crop = document.getElementById('newFarmerCrop').value;
+            const newId = 'F-' + Math.floor(1000 + Math.random() * 9000);
+            
+            // 2. Package it into a JSON object matching your Django models.py
+            const payload = {
+                krishi_id: newId,
+                full_name: name,
+                phone_number: phone,
+                primary_crop: crop
+            };
+
+            // 3. Send it to your running Django backend
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/onboard-farmer/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Success:", data.message);
+
+                    // 4. Update the UI table only if the database save was successful
+                    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                    const tableBody = document.getElementById('rosterTableBody');
+                    const newRow = `
+                        <tr style="background-color: #F0FDF4; animation: slideIn 0.3s forwards;">
+                            <td>
+                                <div class="farmer-name-cell">
+                                    <div class="farmer-initial" style="background: #DEF7EC; color: #03543F;">${initials}</div>
+                                    <div>
+                                        <strong>${name}</strong><br>
+                                        <span style="font-size: 0.8rem; color: #6B7280;">+91 ${phone.substring(0,5)} *****</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="font-family: monospace; font-weight: 600;">${newId}</td>
+                            <td>${crop.replace(/[^a-zA-Z]/g, '')}</td>
+                            <td>0 kg</td>
+                            <td><span style="color: #0E9F6E; font-weight: 700; font-size: 0.85rem;">New / Active</span></td>
+                        </tr>
+                    `;
+                    
+                    tableBody.insertAdjacentHTML('afterbegin', newRow);
+                    
+                    const countElement = document.getElementById('farmerCount');
+                    countElement.innerText = parseInt(countElement.innerText) + 1;
+                    
+                    closeModal();
+                    this.reset();
+                } else {
+                    // If Django rejects it (e.g., duplicate phone number)
+                    const errorData = await response.json();
+                    console.error("Backend Error:", errorData);
+                    alert("Database Error: Could not register farmer. Check console for details.");
+                }
+            } catch (error) {
+                console.error("Network Error:", error);
+                alert("Cannot connect to Django backend. Is the server running?");
+            }
+        });
+    </script>
+</body>
+</html>

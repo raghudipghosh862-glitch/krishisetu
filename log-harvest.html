@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSetu | Log Harvest</title>
+    <link rel="stylesheet" href="stylee.css">
+    <style>
+        .form-container {
+            background: #FFFFFF;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid #E5E7EB;
+        }
+        
+        .form-header {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        
+        .form-group label {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #F9FAFB;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            background-color: #FFFFFF;
+            border-color: #1B4D3E;
+            box-shadow: 0 0 0 4px rgba(27, 77, 62, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: #113027;
+            color: #E5A93C;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 12px;
+        }
+
+        .btn-submit:hover { background-color: #1B4D3E; }
+    </style>
+</head>
+<body style="background-color: #F3F4F6; margin: 0; font-family: sans-serif;">
+
+    <!-- Navigation -->
+    <nav class="main-nav-bar" style="background: #113027; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center;">
+        <div class="nav-brand" style="color: #E5A93C; font-size: 1.5rem; font-weight: 800;">🌾 KrishiSetu</div>
+        <div class="nav-links" style="display: flex; gap: 20px;">
+            <a href="profile.html" style="color: white; text-decoration: none; font-weight: 600;">← Back to Dashboard</a>
+        </div>
+    </nav>
+
+    <!-- Harvest Logging Form -->
+    <main>
+        <div class="form-container">
+            <div class="form-header">
+                <h2 style="color: #111827; margin: 0 0 8px 0;">Log Daily Harvest</h2>
+                <p style="color: #6B7280; margin: 0;">Record incoming crop yields for hyperlocal pooling.</p>
+            </div>
+
+            <form id="harvestForm">
+                <div class="form-group">
+                    <label>Select Registered Farmer</label>
+                    <select id="farmerSelect" class="form-control" required>
+                        <option value="" disabled selected>Loading farmers...</option>
+                        <!-- Dynamic options will be injected here by JS -->
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 16px; margin-bottom: 20px;">
+                    <div style="flex: 1;">
+                        <label>Crop Type</label>
+                        <select id="cropType" class="form-control" required>
+                            <option value="Tomatoes">🍅 Tomatoes</option>
+                            <option value="Onions">🧅 Onions</option>
+                            <option value="Potatoes">🥔 Potatoes</option>
+                            <option value="Wheat">🌾 Wheat</option>
+                        </select>
+                    </div>
+                    
+                    <div style="flex: 1;">
+                        <label>Weight (in kg)</label>
+                        <input type="number" id="cropWeight" class="form-control" placeholder="e.g. 150" min="1" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Quality Assessment</label>
+                    <select id="qualityGrade" class="form-control" required>
+                        <option value="Grade A">Grade A (Premium - Direct to Market)</option>
+                        <option value="Grade B">Grade B (Standard - Processing)</option>
+                        <option value="Grade C">Grade C (Substandard)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-submit">Submit Harvest Record</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // 1. Fetch registered farmers when the page loads
+        document.addEventListener("DOMContentLoaded", async () => {
+            const farmerSelect = document.getElementById('farmerSelect');
+            
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/get-farmers/");
+                if (response.ok) {
+                    const farmers = await response.json();
+                    farmerSelect.innerHTML = '<option value="" disabled selected>Select a farmer...</option>';
+                    
+                    farmers.forEach(farmer => {
+                        const option = document.createElement('option');
+                        // Assuming your model uses 'id' for the primary key. Update if it uses krishi_id.
+                        option.value = farmer.id; 
+                        option.textContent = `${farmer.full_name} (${farmer.krishi_id}) - ${farmer.primary_crop}`;
+                        farmerSelect.appendChild(option);
+                    });
+                } else {
+                    farmerSelect.innerHTML = '<option disabled>Error loading farmers</option>';
+                }
+            } catch (error) {
+                console.error("Error fetching farmers:", error);
+                farmerSelect.innerHTML = '<option disabled>Cannot connect to server</option>';
+            }
+        });
+
+        // 2. Submit the new harvest log to Django
+        document.getElementById('harvestForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Note: Verify these payload keys match your HarvestLog models.py fields exactly
+            const payload = {
+                farmer: document.getElementById('farmerSelect').value,
+                crop_type: document.getElementById('cropType').value,
+                weight_kg: document.getElementById('cropWeight').value,
+                quality_grade: document.getElementById('qualityGrade').value
+            };
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/log-harvest/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert("Harvest successfully logged and added to the pool!");
+                    this.reset();
+                } else {
+                    const errorData = await response.json();
+                    console.error("Backend validation failed:", errorData);
+                    alert("Failed to log harvest. Check console for details.");
+                }
+            } catch (error) {
+                alert("Cannot connect to backend server. Is Django running?");
+            }
+        });
+    </script>
+</body>
+</html>

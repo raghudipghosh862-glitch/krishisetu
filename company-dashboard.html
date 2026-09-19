@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiTransit | Company Dashboard</title>
+    <link rel="stylesheet" href="stylee.css">
+    <style>
+        .dashboard-header {
+            background: #113027;
+            color: white;
+            padding: 32px;
+            border-radius: 12px;
+            margin: 24px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            color: #111827;
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin: 32px 24px 16px 24px;
+            border-bottom: 2px solid #E5E7EB;
+            padding-bottom: 8px;
+        }
+
+        .requests-container {
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .trip-card {
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .badge-pending {
+            background: #FEF3C7;
+            color: #92400E;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 16px;
+            font-size: 0.95rem;
+        }
+
+        .btn-accept {
+            background: #113027;
+            color: #E5A93C;
+        }
+    </style>
+</head>
+<body style="background-color: #F3F4F6; margin: 0; font-family: sans-serif;">
+
+    <!-- Navigation -->
+    <nav class="main-nav-bar" style="background: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB;">
+        <div class="nav-brand" style="color: #113027; font-size: 1.5rem; font-weight: 800;">🚚 KrishiTransit</div>
+        <div class="nav-links" style="display: flex; gap: 20px; align-items: center;">
+            <a href="Index3.html" style="color: #113027; text-decoration: none; font-weight: 700; transition: color 0.2s;" onmouseover="this.style.color='#E5A93C'" onmouseout="this.style.color='#113027'">Home</a>
+            <button onclick="document.getElementById('passwordModal').style.display='flex'" style="background: transparent; color: #6B7280; border: 1px solid #E5E7EB; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">⚙️ Security</button>
+            <button onclick="logoutCompany()" style="background: #FEE2E2; color: #991B1B; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer;">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Welcome Header -->
+    <div class="dashboard-header">
+        <h1 id="companyNameDisplay" style="margin: 0 0 8px 0; color: #E5A93C;">Loading...</h1>
+        <p id="companyLocationDisplay" style="margin: 0; color: #A7F3D0;">Loading location...</p>
+    </div>
+
+    <!-- Incoming Requests Section -->
+    <h2 class="section-title">Incoming Trip Requests</h2>
+    <div class="requests-container" id="pendingRequestsContainer">
+        <!-- We will dynamically inject trip requests here from Django -->
+        <p style="color: #6B7280; font-style: italic;">No pending requests from Group Leaders at this time.</p>
+    </div>
+    <!-- Universal Password Change Modal -->
+    <div id="passwordModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000;">
+        <div style="background: white; padding: 32px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="margin: 0; color: #111827;">Change Password</h3>
+                <button onclick="document.getElementById('passwordModal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            
+            <form id="passwordChangeForm">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Current Password</label>
+                    <input type="password" id="oldPass" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                </div>
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">New Password</label>
+                    <input type="password" id="newPass" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                </div>
+                <button type="submit" style="width: 100%; padding: 14px; background: #113027; color: #E5A93C; border: none; border-radius: 6px; font-weight: 800; cursor: pointer;">Update Security</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Universal Password Change Logic
+        document.getElementById('passwordChangeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const oldPass = document.getElementById('oldPass').value;
+            const newPass = document.getElementById('newPass').value;
+            
+            let role = '';
+            let userId = null;
+
+            // Auto-detect the user role based on active browser sessions
+            if (localStorage.getItem('krishi_session')) {
+                role = 'leader';
+                userId = JSON.parse(localStorage.getItem('krishi_session')).leader_id || 1; 
+            } else if (localStorage.getItem('company_session')) {
+                role = 'company';
+                userId = JSON.parse(localStorage.getItem('company_session')).company_id;
+            } else if (localStorage.getItem('driver_session')) {
+                role = 'driver';
+                userId = JSON.parse(localStorage.getItem('driver_session')).driver_id;
+            }
+
+            if (!userId) {
+                alert("Session error. Please log out and log back in.");
+                return;
+            }
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerText = "Updating...";
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/change-password/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        role: role, 
+                        user_id: userId, 
+                        old_password: oldPass, 
+                        new_password: newPass 
+                    })
+                });
+
+                if (response.ok) {
+                    alert("✅ Password successfully updated!");
+                    document.getElementById('passwordModal').style.display = 'none';
+                    this.reset();
+                } else {
+                    alert("❌ Update failed. Please ensure your current password is correct.");
+                }
+            } catch (error) {
+                alert("Network error. Cannot connect to server.");
+            } finally {
+                submitBtn.innerText = "Update Security";
+                submitBtn.disabled = false;
+            }
+        });
+        let availableDrivers = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const sessionData = localStorage.getItem('company_session');
+            if (!sessionData) {
+                window.location.href = "TransitHub.html";
+                return;
+            }
+
+            const company = JSON.parse(sessionData);
+            document.getElementById('companyNameDisplay').innerText = company.company_name;
+            document.getElementById('companyLocationDisplay').innerText = `Base of Operations: ${company.location}`;
+            
+            // 1. Fetch Company's Drivers to populate the dropdowns
+            try {
+                const driverRes = await fetch(`http://127.0.0.1:8000/api/get-company-drivers/${company.company_id}/`);
+                if (driverRes.ok) availableDrivers = await driverRes.json();
+            } catch (e) { console.error("Error loading drivers"); }
+
+            // 2. Fetch Pending Trips
+            loadPendingTrips(company.company_id);
+        });
+
+        async function loadPendingTrips(companyId) {
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/get-company-trips/${companyId}/`);
+                if (response.ok) {
+                    const trips = await response.json();
+                    const container = document.getElementById('pendingRequestsContainer');
+                    
+                    if (trips.length === 0) {
+                        container.innerHTML = '<p style="color: #6B7280; font-style: italic;">No pending requests at this time.</p>';
+                        return;
+                    }
+
+                    container.innerHTML = ''; // Clear loading text
+                    
+                    // Build driver dropdown options
+                    let driverOptions = '<option value="" disabled selected>Assign a driver...</option>';
+                    availableDrivers.forEach(d => {
+                        driverOptions += `<option value="${d.id}">${d.full_name}</option>`;
+                    });
+
+                    trips.forEach(trip => {
+                        const card = `
+                            <div class="trip-card" id="tripCard-${trip.id}">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                    <span class="badge-pending">New Request</span>
+                                    <strong style="color: #113027;">₹${trip.total_cost}</strong>
+                                </div>
+                                <div style="margin-bottom: 8px;"><strong>Pickup:</strong> ${trip.pickup_location}</div>
+                                <div style="margin-bottom: 8px;"><strong>Dropoff:</strong> ${trip.dropoff_location}</div>
+                                <div style="margin-bottom: 16px; color: #6B7280; font-size: 0.9rem;">Cargo: ${trip.cargo_weight_kg} kg</div>
+                                
+                                <select id="driverSelect-${trip.id}" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #E5E7EB; margin-bottom: 12px;">
+                                    ${driverOptions}
+                                </select>
+                                
+                                <button class="btn-action btn-accept" onclick="acceptTrip(${trip.id})">Accept & Request Advance</button>
+                            </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', card);
+                    });
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function acceptTrip(tripId) {
+            const driverSelect = document.getElementById(`driverSelect-${tripId}`);
+            const driverId = driverSelect.value;
+            
+            if (!driverId) {
+                alert("You must assign a driver to accept this trip.");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/accept-trip/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ trip_id: tripId, driver_id: driverId })
+                });
+
+                if (response.ok) {
+                    alert("Trip accepted! An escrow invoice has been sent to the Group Leader.");
+                    document.getElementById(`tripCard-${tripId}`).style.display = 'none'; // Hide the card
+                } else {
+                    alert("Failed to accept trip.");
+                }
+            } catch (error) { alert("Network error."); }
+        }
+
+        function logoutCompany() {
+            localStorage.removeItem('company_session');
+            window.location.href = "TransitHub.html";
+        }
+    </script>
+</body>
+</html>

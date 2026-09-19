@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krishi Setu | Buyer Portal</title>
+    <link rel="stylesheet" href="stylee.css">
+</head>
+<body style="background-color: #F3F4F6; margin: 0; font-family: sans-serif; padding: 40px;">
+
+   <!-- Navigation -->
+    <nav style="background: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB; margin-bottom: 40px;">
+        <div style="color: #113027; font-size: 1.5rem; font-weight: 800;">🛒 KrishiSetu | Buyer Hub</div>
+        <a href="Index3.html" style="color: #113027; text-decoration: none; font-weight: 700;">Home</a>
+    </nav>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1200px; margin: 0 auto;">
+        
+        <!-- SECTION 1: MARKETPLACE -->
+        <div>
+            <h2 style="color: #111827; border-bottom: 2px solid #E5E7EB; padding-bottom: 10px;">Marketplace: Available Lots</h2>
+            
+            <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #E5E7EB;">
+                <div style="display: flex; justify-content: space-between;">
+                    <h3 style="margin-top: 0; color: #1B4D3E;">Lot #402 - Premium Tomatoes</h3>
+                    <span style="background: #DEF7EC; color: #03543F; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; height: fit-content;">Verified Grade A</span>
+                </div>
+                <p style="color: #6B7280; margin-bottom: 8px;"><strong>Farmer Group:</strong> Node 42, West Bengal</p>
+                <p style="color: #6B7280; margin-bottom: 20px;"><strong>Weight:</strong> 250 kg</p>
+                <h3 style="color: #E5A93C; margin-bottom: 20px;">Total: ₹5,000</h3>
+                
+                <button id="pay-btn" onclick="triggerPayment(5000)" style="background: #113027; color: #E5A93C; border: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%;">
+                    Secure Lot & Pay Advance to Escrow
+                </button>
+            </div>
+        </div>
+
+        <!-- SECTION 2: ACTIVE DELIVERIES & OTP -->
+        <div>
+            <h2 style="color: #111827; border-bottom: 2px solid #E5E7EB; padding-bottom: 10px;">Active Deliveries</h2>
+            
+            <div id="deliveryCard" style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #E5E7EB; opacity: 0.5; pointer-events: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="margin: 0; color: #111827;">In Transit: Lot #402</h3>
+                    <span style="background: #FEF3C7; color: #92400E; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">🚚 On the way</span>
+                </div>
+                
+                <p style="color: #6B7280; font-size: 0.9rem; margin-bottom: 20px;">When the truck arrives and you have verified the crop quality, enter the 4-digit OTP provided by the driver to release the escrow payment.</p>
+                
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="deliveryOtp" placeholder="Enter 4-digit OTP" maxlength="4" style="flex: 1; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 1.1rem; text-align: center; letter-spacing: 4px; font-weight: bold;">
+                    <button id="verifyOtpBtn" onclick="verifyDelivery()" style="background: #E5A93C; color: #113027; border: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                        Verify & Release Funds
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- The Payment & OTP Logic -->
+    <script>
+        let currentEscrowAmount = 0;
+        const SECRET_OTP = "4020"; // Hardcoded for hackathon demo purposes
+
+        function triggerPayment(amount) {
+            currentEscrowAmount = amount;
+            document.getElementById('displayAmount').innerText = '₹' + amount.toLocaleString('en-IN');
+            document.getElementById('paymentModal').style.display = 'flex';
+        }
+
+        function closePayment() {
+            document.getElementById('paymentModal').style.display = 'none';
+        }
+
+        async function processFakePayment() {
+            const btn = document.getElementById('simulateBtn');
+            btn.innerText = "Processing...";
+            btn.style.background = "#9CA3AF";
+            btn.disabled = true;
+
+            setTimeout(async () => {
+                const fakeTxnId = "TXN" + Math.floor(Math.random() * 1000000000);
+                alert("Payment Successful! Funds secured in Escrow: " + fakeTxnId);
+                closePayment();
+                
+                // 1. Update Market button
+                const buyBtn = document.getElementById('pay-btn');
+                buyBtn.innerText = "Paid - Track Delivery";
+                buyBtn.style.background = "#059669"; 
+                buyBtn.disabled = true;
+
+                // 2. UNLOCK the Delivery Card
+                const deliveryCard = document.getElementById('deliveryCard');
+                deliveryCard.style.opacity = "1";
+                deliveryCard.style.pointerEvents = "auto";
+
+                try {
+                    await fetch("http://127.0.0.1:8000/api/update-payment/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ payment_id: fakeTxnId, status: 'ADVANCE_PAID' })
+                    });
+                } catch (e) {
+                    console.error("Backend offline, demo continuing.");
+                }
+            }, 1500); 
+        }
+
+        // --- NEW OTP VERIFICATION LOGIC ---
+        async function verifyDelivery() {
+            const enteredOtp = document.getElementById('deliveryOtp').value;
+            const btn = document.getElementById('verifyOtpBtn');
+
+            if(enteredOtp !== SECRET_OTP) {
+                alert("Invalid OTP! Please check with the driver.");
+                return;
+            }
+
+            btn.innerText = "Verifying...";
+            btn.style.background = "#9CA3AF";
+
+            setTimeout(async () => {
+                alert("✅ Delivery Confirmed! The Escrow funds have been released to the Farmer Group & Transport Company.");
+                
+                btn.innerText = "Delivery Complete";
+                btn.style.background = "#059669";
+                btn.style.color = "white";
+                document.getElementById('deliveryOtp').disabled = true;
+
+                // Hit Django Backend to complete the trip
+                try {
+                    await fetch("http://127.0.0.1:8000/api/verify-delivery/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ otp: enteredOtp, status: 'COMPLETED' })
+                    });
+                } catch (e) {
+                    console.log("Backend offline, demo UI updated.");
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

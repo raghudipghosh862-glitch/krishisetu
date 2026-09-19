@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiTransit | Escrow Release</title>
+    <link rel="stylesheet" href="stylee.css">
+    <style>
+        .escrow-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+        .escrow-card {
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .card-settlement { border-color: #E5A93C; }
+        
+        .escrow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #E5E7EB;
+            padding-bottom: 16px;
+        }
+        .escrow-amount {
+            background: #DEF7EC;
+            color: #03543F;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            text-align: center;
+        }
+        .amount-settlement {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+        .btn-pay {
+            background: #113027;
+            color: #E5A93C;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-pay:hover { background: #1B4D3E; }
+        
+        .section-title {
+            color: #111827; 
+            margin-bottom: 8px; 
+            margin-top: 40px; 
+            border-bottom: 2px solid #E5E7EB; 
+            padding-bottom: 8px;
+        }
+    </style>
+</head>
+<body style="background-color: #F3F4F6; margin: 0; font-family: sans-serif;">
+
+    <nav style="background: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB;">
+        <div style="color: #113027; font-size: 1.5rem; font-weight: 800;">🔒 KrishiSetu Escrow Control</div>
+        <div style="display: flex; gap: 20px;">
+            <a href="profile.html" style="color: #6B7280; text-decoration: none; font-weight: 600;">← Back to Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="escrow-container">
+        
+        <!-- SECTION 1: ADVANCES -->
+        <h2 class="section-title">Pending Escrow Advances (30%)</h2>
+        <p style="color: #6B7280; margin-bottom: 24px;">Release advance payment to lock the contract and dispatch the truck.</p>
+        <div id="escrowList"><p style="color: #6B7280; font-style: italic;">No pending advances.</p></div>
+
+        <!-- SECTION 2: FINAL SETTLEMENTS -->
+        <h2 class="section-title">Final Settlements (70%)</h2>
+        <p style="color: #6B7280; margin-bottom: 24px;">Cargo delivered. Release final payout after Mandi verification.</p>
+        <div id="settlementList"><p style="color: #6B7280; font-style: italic;">No pending settlements.</p></div>
+        
+    </div>
+
+    <!-- Universal Password Change Modal Placeholder (Hidden) -->
+    <div id="passwordModal" style="display: none;"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const leaderSession = JSON.parse(localStorage.getItem('krishi_session'));
+            
+            if (!leaderSession) {
+                alert("Please log into your Group Leader account first!");
+                window.location.href = "TransitHub.html";
+                return;
+            }
+
+            const leaderId = leaderSession.leader_id || 1;
+            loadAdvances(leaderId);
+            loadSettlements(leaderId);
+        });
+
+        async function loadAdvances(leaderId) {
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/get-pending-escrow/${leaderId}/`);
+                if (response.ok) {
+                    const trips = await response.json();
+                    const container = document.getElementById('escrowList');
+                    if (trips.length > 0) container.innerHTML = ''; 
+                    
+                    trips.forEach(trip => {
+                        const card = `
+                            <div class="escrow-card" id="escrow-${trip.id}">
+                                <div class="escrow-header">
+                                    <div>
+                                        <h3 style="margin: 0 0 4px 0; color: #111827;">${trip.transport_company__company_name}</h3>
+                                        <span style="color: #6B7280; font-size: 0.9rem;">Driver: ${trip.assigned_driver__full_name}</span>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="color: #6B7280; font-size: 0.85rem;">Total Contract</div>
+                                        <strong style="color: #374151;">₹${trip.total_cost}</strong>
+                                    </div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; color: #374151; font-size: 0.95rem;">
+                                    <span><strong>From:</strong> ${trip.pickup_location}</span>
+                                    <span>→</span>
+                                    <span><strong>To:</strong> ${trip.dropoff_location}</span>
+                                </div>
+                                <div class="escrow-amount">
+                                    <div style="font-size: 0.85rem; color: #046C4E; font-weight: 600; margin-bottom: 4px;">REQUIRED ADVANCE (30%)</div>
+                                    ₹${trip.advance_payment}
+                                </div>
+                                <button class="btn-pay" onclick="payEscrow(${trip.id})">Lock Escrow & Dispatch Truck</button>
+                            </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', card);
+                    });
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadSettlements(leaderId) {
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/get-final-settlements/${leaderId}/`);
+                if (response.ok) {
+                    const trips = await response.json();
+                    const container = document.getElementById('settlementList');
+                    if (trips.length > 0) container.innerHTML = ''; 
+                    
+                    trips.forEach(trip => {
+                        // Calculate remaining balance dynamically
+                        const remainingBalance = (trip.total_cost - trip.advance_payment).toFixed(2);
+                        
+                        const card = `
+                            <div class="escrow-card card-settlement" id="settlement-${trip.id}">
+                                <div class="escrow-header">
+                                    <div>
+                                        <h3 style="margin: 0 0 4px 0; color: #111827;">${trip.transport_company__company_name}</h3>
+                                        <span style="color: #6B7280; font-size: 0.9rem; font-weight: bold; color: #0E9F6E;">✓ CARGO DELIVERED</span>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="color: #6B7280; font-size: 0.85rem;">Total Contract: ₹${trip.total_cost}</div>
+                                        <div style="color: #6B7280; font-size: 0.85rem;">Advance Paid: -₹${trip.advance_payment}</div>
+                                    </div>
+                                </div>
+                                <div class="escrow-amount amount-settlement">
+                                    <div style="font-size: 0.85rem; color: #92400E; font-weight: 600; margin-bottom: 4px;">FINAL SETTLEMENT (70%)</div>
+                                    ₹${remainingBalance}
+                                </div>
+                                <button class="btn-pay" style="background: #E5A93C; color: #113027;" onclick="releaseFinal(${trip.id})">Release Final Settlement</button>
+                            </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', card);
+                    });
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function payEscrow(tripId) {
+            const btn = document.querySelector(`#escrow-${tripId} .btn-pay`);
+            btn.innerText = "Processing Secure Escrow...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/pay-escrow-advance/", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ trip_id: tripId })
+                });
+
+                if (response.ok) {
+                    alert("✅ Escrow Locked! The truck has been dispatched.");
+                    document.getElementById(`escrow-${tripId}`).style.display = 'none';
+                }
+            } catch (error) { alert("Network error."); btn.disabled = false; }
+        }
+
+        async function releaseFinal(tripId) {
+            const btn = document.querySelector(`#settlement-${tripId} .btn-pay`);
+            btn.innerText = "Releasing Funds...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/release-final-escrow/", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ trip_id: tripId })
+                });
+
+                if (response.ok) {
+                    alert("🎉 Settlement Complete! The remaining 70% has been transferred.");
+                    document.getElementById(`settlement-${tripId}`).style.display = 'none';
+                }
+            } catch (error) { alert("Network error."); btn.disabled = false; }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiConnect | Agricultural Marketplace</title>
+    <link rel="stylesheet" href="stylee.css">
+    <style>
+        .connect-container {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .search-bar {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #E5E7EB;
+            border-radius: 24px;
+            font-size: 1rem;
+            outline: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .btn-new-post {
+            background: #113027;
+            color: #E5A93C;
+            padding: 0 24px;
+            border: none;
+            border-radius: 24px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Post Cards */
+        .post-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #E5E7EB;
+        }
+        .post-card.sell { border-top: 4px solid #0E9F6E; }
+        .post-card.buy { border-top: 4px solid #3B82F6; }
+        
+        .post-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .poster-name { font-weight: 800; font-size: 1.1rem; color: #111827; margin: 0; }
+        .post-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 800; }
+        .badge-sell { background: #DEF7EC; color: #03543F; }
+        .badge-buy { background: #DBEAFE; color: #1E40AF; }
+        
+        .post-body h3 { margin: 0 0 8px 0; color: #374151; font-size: 1.25rem; }
+        .post-details { color: #4B5563; font-size: 0.95rem; margin-bottom: 16px; line-height: 1.5; }
+        
+        .btn-call {
+            display: block;
+            text-align: center;
+            background: #F3F4F6;
+            color: #111827;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            border: 1px solid #D1D5DB;
+        }
+        .btn-call:hover { background: #E5E7EB; }
+        
+        /* Modal Tabs */
+        .tab-btn { flex: 1; padding: 12px; border: none; font-weight: 700; cursor: pointer; border-bottom: 3px solid transparent; background: none; }
+        .tab-btn.active { border-bottom-color: #113027; color: #113027; }
+        .form-section { display: none; margin-top: 16px; }
+        .form-section.active { display: block; }
+    </style>
+</head>
+<body style="background-color: #F3F4F6; margin: 0; font-family: sans-serif;">
+
+    <!-- Navbar -->
+    <nav style="background: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB;">
+        <div style="color: #113027; font-size: 1.5rem; font-weight: 800;">🤝 KrishiConnect Feed</div>
+        <div style="display: flex; gap: 20px;">
+            <a href="Index3.html" style="color: #6B7280; text-decoration: none; font-weight: 600;">Home</a>
+        </div>
+    </nav>
+
+    <div class="connect-container">
+        <!-- Search & Actions -->
+        <div class="header-actions">
+            <input type="text" id="searchInput" class="search-bar" placeholder="Search for crops (e.g., Onion, Potato)..." onkeyup="handleSearch()">
+            <button class="btn-new-post" onclick="openPostModal()">+ Create Post</button>
+        </div>
+
+        <!-- The Feed -->
+        <div id="feedContainer">
+            <p style="text-align: center; color: #6B7280;">Loading market posts...</p>
+        </div>
+    </div>
+
+    <!-- Create Post Modal -->
+    <div id="postModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
+        <div style="background: white; padding: 32px; border-radius: 12px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="margin: 0;">Create Market Post</h2>
+                <button onclick="document.getElementById('postModal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+
+            <!-- Tabs -->
+            <div style="display: flex; border-bottom: 1px solid #E5E7EB; margin-bottom: 16px;">
+                <button class="tab-btn active" id="tabSell" onclick="switchTab('SELL')">I want to SELL</button>
+                <button class="tab-btn" id="tabBuy" onclick="switchTab('BUY')">I want to BUY</button>
+            </div>
+
+            <form id="postForm">
+                <input type="hidden" id="postType" value="SELL">
+
+                <!-- Common Fields -->
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Your Name / Group Name</label>
+                    <input type="text" id="posterName" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #E5E7EB;" required>
+                </div>
+                <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                    <div style="flex: 2;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Crop Name(s)</label>
+                        <input type="text" id="cropNames" placeholder="e.g. Onion" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #E5E7EB;" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Qty (kg)</label>
+                        <input type="number" id="quantity" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #E5E7EB;" required>
+                    </div>
+                </div>
+
+                <!-- SELLER Specific Fields -->
+                <div id="sellerSection" class="form-section active">
+                    <div style="background: #F3F4F6; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #113027;">Prophet AI Price Forecast</label>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" onclick="getAIForecast()" style="background: #113027; color: #E5A93C; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">Predict Price</button>
+                            <input type="number" step="0.01" id="aiPrice" placeholder="₹ / kg" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #E5E7EB; background: white;" required>
+                        </div>
+                        <small style="color: #6B7280; margin-top: 4px; display: block;">Click predict to let AI calculate the optimal market rate based on current trends.</small>
+                    </div>
+                    
+                    <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px;">Harvest / Ready Date</label>
+                            <input type="date" id="availFrom" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #E5E7EB;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #991B1B;">Spoils By (Urgency)</label>
+                            <input type="date" id="expiresOn" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #E5E7EB;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BUYER Specific Fields -->
+                <div id="buyerSection" class="form-section">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Delivery Location</label>
+                        <input type="text" id="deliveryLoc" placeholder="e.g. Node 42 Hub / City Mandi" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #E5E7EB;">
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Needed By Date</label>
+                        <input type="date" id="neededBy" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #E5E7EB;">
+                    </div>
+                </div>
+
+                <!-- Common Contact & Submit -->
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Contact Number (For Direct Calls)</label>
+                    <input type="tel" id="contactNum" placeholder="+91..." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #E5E7EB;" required>
+                </div>
+                
+                <button type="submit" style="width: 100%; padding: 14px; background: #113027; color: #E5A93C; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 1.05rem;">Publish to Feed</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Load Feed on start
+        document.addEventListener("DOMContentLoaded", () => {
+            loadFeed();
+        });
+
+        // Search logic (with basic debounce to avoid spamming API)
+        let searchTimeout;
+        function handleSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const query = document.getElementById('searchInput').value;
+                loadFeed(query);
+            }, 300);
+        }
+
+        // Fetch Posts from Backend
+        async function loadFeed(query = '') {
+            const container = document.getElementById('feedContainer');
+            try {
+                const url = query ? `http://127.0.0.1:8000/api/get-market-posts/?search=${query}` : `http://127.0.0.1:8000/api/get-market-posts/`;
+                const response = await fetch(url);
+                
+                if (response.ok) {
+                    const posts = await response.json();
+                    container.innerHTML = '';
+
+                    if (posts.length === 0) {
+                        container.innerHTML = `<p style="text-align: center; color: #6B7280; margin-top: 40px;">No posts found. Be the first to post!</p>`;
+                        return;
+                    }
+
+                    posts.forEach(post => {
+                        const isSell = post.post_type === 'SELL';
+                        
+                        // Build details based on type
+                        let detailsHtml = '';
+                        if (isSell) {
+                            detailsHtml = `
+                                <div><strong>Selling:</strong> ${post.crop_names} (${post.quantity_kg} kg)</div>
+                                <div style="color: #0E9F6E;"><strong>AI Price:</strong> ₹${post.ai_suggested_price} / kg</div>
+                                <div><strong>Available:</strong> ${post.available_from || 'Now'} 
+                                     <span style="color: #991B1B;">(Spoils by: ${post.expires_on || 'N/A'})</span>
+                                </div>
+                            `;
+                        } else {
+                            detailsHtml = `
+                                <div><strong>Looking For:</strong> ${post.crop_names} (${post.quantity_kg} kg)</div>
+                                <div><strong>Deliver To:</strong> ${post.delivery_location || 'N/A'}</div>
+                                <div style="color: #B45309;"><strong>Needed By:</strong> ${post.needed_by_date || 'ASAP'}</div>
+                            `;
+                        }
+
+                        const card = `
+                            <div class="post-card ${isSell ? 'sell' : 'buy'}">
+                                <div class="post-header">
+                                    <h3 class="poster-name">${post.poster_name}</h3>
+                                    <span class="post-badge ${isSell ? 'badge-sell' : 'badge-buy'}">${isSell ? 'SELLING' : 'BUYING'}</span>
+                                </div>
+                                <div class="post-body">
+                                    <div class="post-details">${detailsHtml}</div>
+                                    <!-- The 'tel:' link triggers phone dialer on mobile devices -->
+                                    <a href="tel:${post.contact_number}" class="btn-call">📞 Contact ${post.contact_number}</a>
+                                </div>
+                            </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', card);
+                    });
+                }
+            } catch (error) {
+                container.innerHTML = `<p style="color: red; text-align: center;">Error connecting to KrishiConnect server.</p>`;
+            }
+        }
+
+        // Modal Logic
+        function openPostModal() {
+            document.getElementById('postModal').style.display = 'flex';
+        }
+
+        function switchTab(type) {
+            document.getElementById('postType').value = type;
+            
+            if (type === 'SELL') {
+                document.getElementById('tabSell').classList.add('active');
+                document.getElementById('tabBuy').classList.remove('active');
+                document.getElementById('sellerSection').classList.add('active');
+                document.getElementById('buyerSection').classList.remove('active');
+                
+                // Toggle required fields
+                document.getElementById('aiPrice').required = true;
+                document.getElementById('deliveryLoc').required = false;
+            } else {
+                document.getElementById('tabBuy').classList.add('active');
+                document.getElementById('tabSell').classList.remove('active');
+                document.getElementById('buyerSection').classList.add('active');
+                document.getElementById('sellerSection').classList.remove('active');
+                
+                // Toggle required fields
+                document.getElementById('aiPrice').required = false;
+                document.getElementById('deliveryLoc').required = true;
+            }
+        }
+
+        // Prophet AI Integration
+        async function getAIForecast() {
+            const crop = document.getElementById('cropNames').value;
+            if (!crop) {
+                alert("Please enter a crop name first!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/forecast-price/?crop_name=${crop}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('aiPrice').value = data.forecasted_price_per_kg;
+                    alert(`Prophet AI Forecast generated!\nEstimated market rate: ₹${data.forecasted_price_per_kg}/kg\nConfidence: ${data.confidence_score}`);
+                }
+            } catch (error) {
+                alert("AI Engine currently offline.");
+            }
+        }
+
+        // Submit Post
+        document.getElementById('postForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const type = document.getElementById('postType').value;
+            
+            const payload = {
+                post_type: type,
+                poster_name: document.getElementById('posterName').value,
+                contact_number: document.getElementById('contactNum').value,
+                crop_names: document.getElementById('cropNames').value,
+                quantity_kg: document.getElementById('quantity').value
+            };
+
+            if (type === 'SELL') {
+                payload.ai_suggested_price = document.getElementById('aiPrice').value;
+                payload.available_from = document.getElementById('availFrom').value || null;
+                payload.expires_on = document.getElementById('expiresOn').value || null;
+            } else {
+                payload.delivery_location = document.getElementById('deliveryLoc').value;
+                payload.needed_by_date = document.getElementById('neededBy').value || null;
+            }
+
+            const btn = this.querySelector('button[type="submit"]');
+            btn.innerText = "Publishing...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/create-market-post/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert("Post published successfully!");
+                    document.getElementById('postModal').style.display = 'none';
+                    this.reset();
+                    loadFeed(); // Refresh the feed instantly
+                }
+            } catch (error) {
+                alert("Failed to publish post.");
+            } finally {
+                btn.innerText = "Publish to Feed";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

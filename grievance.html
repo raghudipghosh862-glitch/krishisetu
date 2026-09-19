@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSetu | Grievance Redressal</title>
+    <link rel="icon" href="data:,">
+    
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="Stylee.css">
+
+    <style>
+        /* Grievance Specific Styles */
+        .grievance-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-dark, #1F2937);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color, #E5E7EB);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #E02424; /* Red focus for urgency */
+            box-shadow: 0 0 0 3px rgba(224, 36, 36, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn-danger {
+            background-color: #E02424;
+            color: #FFFFFF;
+            border: none;
+            padding: 12px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-danger:hover {
+            background-color: #C81E1E;
+        }
+
+        /* Ticket History Styles */
+        .ticket-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .ticket-card {
+            border: 1px solid var(--border-color, #E5E7EB);
+            border-radius: 6px;
+            padding: 16px;
+            background: #F9FAFB;
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .ticket-id {
+            font-weight: 700;
+            color: var(--krishi-green, #1B4D3E);
+            font-size: 0.9rem;
+        }
+
+        .ticket-status {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .status-open { background-color: #FDE8E8; color: #9B1C1C; }
+        .status-progress { background-color: #FEF08A; color: #854D0E; }
+        .status-resolved { background-color: #DEF7EC; color: #03543F; }
+
+        .ticket-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark, #1F2937);
+            margin-bottom: 4px;
+        }
+
+        .ticket-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted, #6B7280);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Navigation Bar -->
+    <nav class="main-nav-bar">
+        <div class="nav-brand">🌾 KrishiSetu</div>
+        <div class="nav-links">
+            <a href="Index3.html">Home</a>
+            <a href="log-harvest.html">Log Harvest</a>
+            <a href="hyperlocal-pooling.html">Hyperlocal Pooling</a>
+            <a href="TransitHub.html">TransitHub</a>
+            <a href="krishi-connect.html">Krishi Connect</a>
+            <a href="grievance.html" class="active">Grievance</a>
+            <a href="profile.html">Group Leader Profile</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        
+        <div class="section-header" style="margin-bottom: -10px;">
+            <h2>Dispute & Grievance Redressal</h2>
+            <p style="color: #6B7280; font-size: 0.9rem;">Report issues regarding logistics, quality, or escrow payments.</p>
+        </div>
+
+        <div class="two-column-layout">
+            
+            <!-- Left: Raise Ticket Form -->
+            <section class="panel-box">
+                <h3 style="margin-bottom: 16px; color: #111827;">Raise a New Ticket</h3>
+                <form id="grievanceForm" class="grievance-form">
+                    
+                    <div class="form-group">
+                        <label>Issue Category</label>
+                        <select class="form-control" id="issueCategory" required>
+                            <option value="">-- Select Category --</option>
+                            <option>Transport / Vehicle Delay</option>
+                            <option>Escrow Payment Dispute</option>
+                            <option>Crop Weight Mismatch at Mandi</option>
+                            <option>Buyer Rejected Cargo</option>
+                            <option>Platform Bug / Technical Issue</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Related ID (Optional)</label>
+                        <input type="text" class="form-control" placeholder="e.g., Truck No. or Farmer ID">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Issue Description</label>
+                        <textarea class="form-control" placeholder="Describe the problem in detail..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Proof / Evidence (Photo of weighing scale, rejected crop, etc.)</label>
+                        <input type="file" class="form-control" style="padding: 8px;">
+                    </div>
+                    
+                    <button type="submit" class="btn-danger">Submit Grievance Ticket</button>
+                </form>
+            </section>
+
+            <!-- Right: Ticket History -->
+            <section class="panel-box">
+                <h3 style="margin-bottom: 16px; color: #111827;">Active & Recent Tickets</h3>
+                
+                <div class="ticket-list" id="ticketList">
+                    <!-- Ticket 1 -->
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-id">#TKT-8992</span>
+                            <span class="ticket-status status-open">ACTION REQUIRED</span>
+                        </div>
+                        <div class="ticket-title">Weight Mismatch at Nashik Mandi</div>
+                        <div class="ticket-meta">Reported: 2 hrs ago • Category: Crop Weight Mismatch</div>
+                    </div>
+
+                    <!-- Ticket 2 -->
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-id">#TKT-8941</span>
+                            <span class="ticket-status status-progress">IN REVIEW</span>
+                        </div>
+                        <div class="ticket-title">Escrow Advance Not Reaching Driver</div>
+                        <div class="ticket-meta">Reported: Yesterday • Category: Payment Dispute</div>
+                    </div>
+
+                    <!-- Ticket 3 -->
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <span class="ticket-id">#TKT-8810</span>
+                            <span class="ticket-status status-resolved">RESOLVED</span>
+                        </div>
+                        <div class="ticket-title">Tata Ace Breakdown on SH-17</div>
+                        <div class="ticket-meta">Reported: Aug 28, 2026 • Category: Vehicle Delay</div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        // Simple JS to simulate ticket submission for demo purposes
+        document.getElementById('grievanceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const category = document.getElementById('issueCategory').value;
+            const ticketList = document.getElementById('ticketList');
+            
+            // Create a new ticket card HTML
+            const newTicket = `
+                <div class="ticket-card" style="border-left: 4px solid #E02424; animation: pulse 2s;">
+                    <div class="ticket-header">
+                        <span class="ticket-id">#TKT-9001 (New)</span>
+                        <span class="ticket-status status-open">OPEN</span>
+                    </div>
+                    <div class="ticket-title">${category}</div>
+                    <div class="ticket-meta">Reported: Just now • Node 42</div>
+                </div>
+            `;
+            
+            // Insert at the top of the list
+            ticketList.insertAdjacentHTML('afterbegin', newTicket);
+            
+            // Show alert and reset form
+            alert("Grievance Ticket #TKT-9001 submitted successfully. Our support team will review it shortly.");
+            this.reset();
+        });
+    </script>
+</body>
+</html>

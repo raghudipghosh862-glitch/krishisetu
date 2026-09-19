@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiTransit | Driver Console</title>
+    <link rel="stylesheet" href="stylee.css">
+    <style>
+        .driver-header {
+            background: #1B4D3E;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        .console-card {
+            background: white; 
+            padding: 24px; 
+            border-radius: 12px; 
+            border: 1px solid #E5E7EB;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .form-control {
+            width: 100%; padding: 12px; border: 1px solid #E5E7EB; 
+            border-radius: 6px; box-sizing: border-box; margin-top: 8px;
+        }
+        .btn-camera {
+            background: #F3F4F6; border: 2px dashed #9CA3AF; color: #4B5563;
+            width: 100%; padding: 20px; border-radius: 8px; font-weight: 700;
+            cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .btn-sync {
+            background: #113027; color: #E5A93C; width: 100%; padding: 14px;
+            border: none; border-radius: 6px; font-weight: 800; font-size: 1rem;
+            cursor: pointer; margin-top: 16px; transition: background 0.2s;
+        }
+        .btn-sync:hover { background: #1B4D3E; }
+    </style>
+</head>
+<body style="background-color: #F3F4F6; margin: 0; font-family: sans-serif;">
+
+    <nav style="background: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB;">
+        <div style="color: #113027; font-size: 1.25rem; font-weight: 800;">🚚 Driver Console</div>
+        <div style="display: flex; gap: 16px; align-items: center;">
+            <a href="Index3.html" style="color: #113027; text-decoration: none; font-weight: 700;">Home</a>
+            <button onclick="document.getElementById('passwordModal').style.display='flex'" style="background: transparent; color: #6B7280; border: 1px solid #E5E7EB; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">⚙️ Security</button>
+            <button onclick="logoutDriver()" style="background: #FEE2E2; color: #991B1B; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer;">Logout</button>
+        </div>
+    </nav>
+
+    <div class="driver-header">
+        <h1 id="driverNameDisplay" style="margin: 0 0 8px 0; color: #A7F3D0;">Loading...</h1>
+        <p id="driverCompanyDisplay" style="margin: 0; font-weight: 600;">Loading company...</p>
+    </div>
+
+    <div style="padding: 24px; max-width: 600px; margin: 0 auto;">
+        
+        <!-- Verification Module -->
+        <div class="console-card">
+            <h2 style="color: #374151; margin-top: 0; border-bottom: 2px solid #E5E7EB; padding-bottom: 12px;">Cargo Verification & Sync</h2>
+            <p style="color: #6B7280; font-size: 0.9rem; margin-bottom: 20px;">Capture live photo and enter physical measurements at pickup. This data will sync with the Group Leader's manifest to clear Escrow.</p>
+            
+            <form id="cargoSyncForm">
+                <!-- Live Camera Capture -->
+                <div style="margin-bottom: 20px;">
+                    <!-- 'capture="environment"' forces mobile devices to open the back camera -->
+                    <input type="file" accept="image/*" capture="environment" id="cargoPhoto" style="display: none;" onchange="previewImage(event)">
+                    <button type="button" class="btn-camera" onclick="document.getElementById('cargoPhoto').click()">
+                        <span style="font-size: 2rem;">📷</span>
+                        <span>Open Camera & Capture Cargo</span>
+                    </button>
+                    <!-- Image Preview Area -->
+                    <div id="imagePreviewContainer" style="display: none; margin-top: 12px; border-radius: 8px; overflow: hidden; border: 1px solid #E5E7EB;">
+                        <img id="imagePreview" style="width: 100%; display: block;" alt="Cargo Preview">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                    <div style="flex: 1;">
+                        <label style="font-weight: 600; color: #374151; font-size: 0.9rem;">Verified Weight (kg)</label>
+                        <input type="number" id="driverWeight" class="form-control" placeholder="e.g. 250" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-weight: 600; color: #374151; font-size: 0.9rem;">Observed Quality</label>
+                        <select id="driverQuality" class="form-control" required>
+                            <option value="Grade A">Grade A</option>
+                            <option value="Grade B">Grade B</option>
+                            <option value="Grade C">Grade C</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-sync" id="syncBtn">Verify & Sync with Hub Manifest</button>
+            </form>
+            
+            <!-- Sync Status Feedback -->
+            <div id="syncStatus" style="display: none; margin-top: 16px; padding: 12px; border-radius: 6px; font-weight: 600; text-align: center;"></div>
+        </div>
+
+        <!-- GPS Tracking Module -->
+        <div class="console-card" style="text-align: center;">
+            <h2 style="color: #374151; margin-top: 0;">Live GPS Telemetry</h2>
+            <p style="color: #6B7280; font-size: 0.9rem;">Transmit location to Group Leader dashboard.</p>
+            <button id="startTrackingBtn" style="background: #E5A93C; color: #113027; padding: 12px 24px; border: none; border-radius: 6px; font-weight: 800; font-size: 1rem; cursor: pointer; margin-top: 8px;">Start Route & Broadcast GPS</button>
+        </div>
+        <!-- Final Delivery Module (Hidden until In Transit) -->
+        <div class="console-card" id="deliveryModule" style="display: none; text-align: center; border: 2px solid #0E9F6E;">
+            <h2 style="color: #046C4E; margin-top: 0;">Destination Reached</h2>
+            <p style="color: #6B7280; font-size: 0.9rem;">Confirm drop-off at the Mandi to request final Escrow payout.</p>
+            <button id="completeDeliveryBtn" onclick="markDelivered()" style="background: #046C4E; color: white; padding: 14px 24px; border: none; border-radius: 6px; font-weight: 800; font-size: 1rem; cursor: pointer; margin-top: 8px; width: 100%;">Confirm Cargo Handover</button>
+        </div>
+
+    </div>
+    <!-- Universal Password Change Modal -->
+    <div id="passwordModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000;">
+        <div style="background: white; padding: 32px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="margin: 0; color: #111827;">Change Password</h3>
+                <button onclick="document.getElementById('passwordModal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            
+            <form id="passwordChangeForm">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Current Password</label>
+                    <input type="password" id="oldPass" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                </div>
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">New Password</label>
+                    <input type="password" id="newPass" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                </div>
+                <button type="submit" style="width: 100%; padding: 14px; background: #113027; color: #E5A93C; border: none; border-radius: 6px; font-weight: 800; cursor: pointer;">Update Security</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Universal Password Change Logic
+        document.getElementById('passwordChangeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const oldPass = document.getElementById('oldPass').value;
+            const newPass = document.getElementById('newPass').value;
+            
+            let role = '';
+            let userId = null;
+
+            // Auto-detect the user role based on active browser sessions
+            if (localStorage.getItem('krishi_session')) {
+                role = 'leader';
+                userId = JSON.parse(localStorage.getItem('krishi_session')).leader_id || 1; 
+            } else if (localStorage.getItem('company_session')) {
+                role = 'company';
+                userId = JSON.parse(localStorage.getItem('company_session')).company_id;
+            } else if (localStorage.getItem('driver_session')) {
+                role = 'driver';
+                userId = JSON.parse(localStorage.getItem('driver_session')).driver_id;
+            }
+
+            if (!userId) {
+                alert("Session error. Please log out and log back in.");
+                return;
+            }
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerText = "Updating...";
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/change-password/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        role: role, 
+                        user_id: userId, 
+                        old_password: oldPass, 
+                        new_password: newPass 
+                    })
+                });
+
+                if (response.ok) {
+                    alert("✅ Password successfully updated!");
+                    document.getElementById('passwordModal').style.display = 'none';
+                    this.reset();
+                } else {
+                    alert("❌ Update failed. Please ensure your current password is correct.");
+                }
+            } catch (error) {
+                alert("Network error. Cannot connect to server.");
+            } finally {
+                submitBtn.innerText = "Update Security";
+                submitBtn.disabled = false;
+            }
+        });
+        let activeTripId = null;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const sessionData = localStorage.getItem('driver_session');
+            if (!sessionData) {
+                window.location.href = "TransitHub.html";
+                return;
+            }
+            const driver = JSON.parse(sessionData);
+            document.getElementById('driverNameDisplay').innerText = driver.driver_name;
+            document.getElementById('driverCompanyDisplay').innerText = driver.company;
+
+            // Fetch Active Trip for this Driver
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/get-driver-active-trip/${driver.driver_id}/`);
+                if (response.ok) {
+                    const trip = await response.json();
+                    activeTripId = trip.trip_id;
+                    
+                    // Display the route instructions dynamically
+                    const tripHTML = `
+                        <div style="background: #DEF7EC; border: 1px solid #046C4E; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                            <h3 style="margin: 0 0 8px 0; color: #046C4E;">Active Dispatch</h3>
+                            <p style="margin: 0 0 4px 0;"><strong>Pickup:</strong> ${trip.pickup}</p>
+                            <p style="margin: 0 0 4px 0;"><strong>Dropoff:</strong> ${trip.dropoff}</p>
+                            <p style="margin: 0;"><strong>Expected Cargo:</strong> ${trip.expected_weight} kg</p>
+                        </div>
+                    `;
+                    // Insert right before the camera form
+                    document.getElementById('cargoSyncForm').insertAdjacentHTML('beforebegin', tripHTML);
+
+                    // If already in transit, update UI
+                    if (trip.status === 'IN_TRANSIT') {
+                        document.getElementById('syncBtn').innerText = "Cargo Already Verified & Syncing";
+                        document.getElementById('syncBtn').disabled = true;
+                        document.getElementById('startTrackingBtn').innerText = "Live GPS Active 🟢";
+                        document.getElementById('startTrackingBtn').style.background = "#0E9F6E";
+                        document.getElementById('startTrackingBtn').style.color = "white";
+                        document.getElementById('deliveryModule').style.display = 'block';
+                    }
+
+                } else {
+                    document.getElementById('cargoSyncForm').insertAdjacentHTML('beforebegin', '<p style="color: #6B7280; font-style: italic;">No active dispatch assigned. Standby for orders.</p>');
+                }
+            } catch (error) {
+                console.error("Error loading trip data", error);
+            }
+        });
+
+        function logoutDriver() {
+            localStorage.removeItem('driver_session');
+            window.location.href = "TransitHub.html";
+        }
+
+        // Camera Preview
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreviewContainer').style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Verify & Start Transit
+        document.getElementById('cargoSyncForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!activeTripId) {
+                alert("You have no active trip to verify.");
+                return;
+            }
+
+            const btn = document.getElementById('syncBtn');
+            const statusBox = document.getElementById('syncStatus');
+            const driverWeight = document.getElementById('driverWeight').value;
+            const photoInput = document.getElementById('cargoPhoto').files.length;
+
+            if (photoInput === 0) {
+                alert("Please capture a photo of the cargo for visual verification.");
+                return;
+            }
+
+            btn.innerText = "Syncing with Hub Database...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/start-transit/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ trip_id: activeTripId, driver_weight: driverWeight })
+                });
+
+                if (response.ok) {
+                    statusBox.style.display = 'block';
+                    statusBox.style.background = '#DEF7EC';
+                    statusBox.style.color = '#03543F';
+                    statusBox.innerHTML = `✅ Sync Successful! <br><span style="font-size: 0.85rem; font-weight: 400;">Driver input (${driverWeight}kg) recorded. Truck is now IN TRANSIT.</span>`;
+                    
+                    btn.innerText = "Cargo Verified";
+                    
+                    // Activate GPS Button
+                    const gpsBtn = document.getElementById('startTrackingBtn');
+                    gpsBtn.innerText = "Live GPS Active 🟢";
+                    gpsBtn.style.background = "#0E9F6E";
+                    gpsBtn.style.color = "white";
+                    gpsBtn.disabled = false;
+                } else {
+                    alert("Failed to sync data. Try again.");
+                    btn.innerText = "Verify & Sync with Hub Manifest";
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                alert("Network error.");
+                btn.disabled = false;
+            }
+        });
+        async function markDelivered() {
+            if (!activeTripId) return;
+            
+            const btn = document.getElementById('completeDeliveryBtn');
+            btn.innerText = "Processing Handover...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/complete-delivery/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ trip_id: activeTripId })
+                });
+
+                if (response.ok) {
+                    alert("✅ Delivery Confirmed! The Group Leader has been notified to release the final escrow.");
+                    window.location.reload(); // Reload to clear the active trip
+                } else {
+                    alert("Delivery update failed.");
+                    btn.innerText = "Confirm Cargo Handover";
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                alert("Network error.");
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

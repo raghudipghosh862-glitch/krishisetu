@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSetu | Home Dashboard</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="Stylee.css">
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <header class="hero-section">
+        <img src="Farmer2.jpg" alt="Farmer with harvest and transport vehicle" class="hero-image">
+        <div class="hero-overlay">
+            <div class="hero-badge">KRISHISETU</div>
+            <h1>KrishiSetu Dashboard</h1>
+            <p>Direct Farmer-to-Buyer Marketplace & Intelligent Pooled Logistics Network</p>
+        </div>
+    </header>
+
+    <!-- Thick Blue Line: Multilingual Scrolling User Manual -->
+    <div class="blue-marquee-bar">
+        <div class="marquee-track">
+            <span>
+                ব্যবহার নির্দেশিকা: আপনার ফসল যুক্ত করতে 'Log Harvest' এ যান • ট্রাক বুক করতে 'Hyperlocal Pooling' দেখুন • যেকোনো সমস্যায় 'Grievance' এ রিপোর্ট করুন | 
+                उपयोगकर्ता पुस्तिका: नई फसल जोड़ने के लिए 'Log Harvest' पर क्लिक करें • साझा वाहन के लिए 'Hyperlocal Pooling' चुनें • सहायता हेतु 'Grievance' पर शिकायत दर्ज करें | 
+                User Manual: Click 'Log Harvest' to aggregate crops • Check 'Hyperlocal Pooling' for 2–3km clusters • Track transit live under 'Track Truck'.
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Navigation Bar -->
+    <nav class="main-nav-bar">
+        <div class="nav-brand">🌾 KrishiSetu</div>
+        <button class="mobile-menu-toggle" id="menuToggle" aria-label="Toggle Navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="nav-links" id="navLinks">
+            <a href="Index3.html" class="active">Home</a>
+            <a href="log-harvest.html">Log Harvest</a>
+            <a href="hyperlocal-pooling.html">Hyperlocal Pooling</a>
+            <a href="buyer-dashboard.html">Buyer Hub</a>
+            <a href="TransitHub.html">TransitHub</a>
+            <a href="krishi-connect.html">Krishi Connect</a>
+            <a href="grievance.html">Grievance</a>
+            <a href="profile.html">Group Leader Profile</a>
+        </div>
+    </nav>
+
+    <!-- Main Body Container -->
+    <main class="dashboard-container">
+
+        <!-- Platform Impact Metrics -->
+        <section class="section-block">
+            <div class="section-header">
+                <h2>Real-Time Platform Impact</h2>
+                <span class="live-pill"><span class="dot"></span> Live Closed-Loop Data</span>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card card-green">
+                    <h3>Farmers Benefited</h3>
+                    <div class="metric-value">12,450+</div>
+                    <div class="metric-desc">Registered across rural aggregation hubs</div>
+                </div>
+                <div class="metric-card card-gold">
+                    <h3>Farmer Net Income Rise</h3>
+                    <div class="metric-value text-green">+34%</div>
+                    <div class="metric-desc">Middleman commission eliminated</div>
+                </div>
+                <div class="metric-card card-blue">
+                    <h3>Consumer Price Drop</h3>
+                    <div class="metric-value text-blue">-18%</div>
+                    <div class="metric-desc">Procurement savings passed to buyers</div>
+                </div>
+                <div class="metric-card card-red">
+                    <h3>Transit Spoilage Saved</h3>
+                    <div class="metric-value text-gold">31%</div>
+                    <div class="metric-desc">Spoilage-aware priority routing</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Access Module Shortcuts -->
+        <section class="section-block">
+            <h2>Quick Actions & Core Operations</h2>
+            <div class="quick-grid">
+                <a href="log-harvest.html" class="quick-card">
+                    <div class="quick-icon">📝</div>
+                    <h3>Log Crop Harvest</h3>
+                    <p>Enter yields for individual and offline marginal farmers.</p>
+                    <span class="quick-arrow">Open Form →</span>
+                </a>
+                <a href="hyperlocal-pooling.html" class="quick-card">
+                    <div class="quick-icon">📍</div>
+                    <h3>Hyperlocal Pooling</h3>
+                    <p>Combine crop crates within a 2–3 km radius for full-truck dispatches.</p>
+                    <span class="quick-arrow">View Clusters →</span>
+                </a>
+                <a href="TransitHub.html" class="quick-card">
+                    <div class="quick-icon">🚚</div>
+                    <h3>Transit Hub</h3>
+                    <p>Monitor live vehicle positions and transit ETAs to bulk mandis.</p>
+                    <span class="quick-arrow">Go to Transit Hub →</span>
+                </a>
+                <a href="escrow-payments.html" class="quick-card">
+                    <div class="quick-icon">🛡️</div>
+                    <h3>Escrow Payouts</h3>
+                    <p>Verify diesel advances and OTP-verified delivery settlement balances.</p>
+                    <span class="quick-arrow">View Escrow →</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Two-Column Section: Live Price Feed & Field Updates -->
+        <div class="two-column-layout">
+            <!-- Left: Mandi Price Intelligence -->
+            <section class="panel-box">
+                <h2>Live Mandi Benchmark Rates</h2>
+                <div class="price-table-wrapper">
+                    <table class="price-table">
+                        <thead>
+                            <tr>
+                                <th>Commodity</th>
+                                <th>Mandi Modal Price</th>
+                                <th>KrishiSetu Direct</th>
+                                <th>Net Farmer Gain</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>🍅 Tomato (Grade A)</td>
+                                <td>₹18 / kg</td>
+                                <td><strong>₹26 / kg</strong></td>
+                                <td class="text-green">+44.4%</td>
+                            </tr>
+                            <tr>
+                                <td>🧅 Onion (Nashik Red)</td>
+                                <td>₹22 / kg</td>
+                                <td><strong>₹29 / kg</strong></td>
+                                <td class="text-green">+31.8%</td>
+                            </tr>
+                            <tr>
+                                <td>🥔 Potato (Jyoti)</td>
+                                <td>₹14 / kg</td>
+                                <td><strong>₹19 / kg</strong></td>
+                                <td class="text-green">+35.7%</td>
+                            </tr>
+                            <tr>
+                                <td>🥬 Spinach / Leafy</td>
+                                <td>₹12 / kg</td>
+                                <td><strong>₹18 / kg</strong></td>
+                                <td class="text-green">+50.0%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Right: Field News and Corridor Bulletins -->
+            <section class="panel-box">
+                <h2>Corridor Alerts & Field News</h2>
+                <div class="news-feed">
+                    <article class="news-item">
+                        <span class="news-badge badge-warning">Weather Priority</span>
+                        <h4>Pre-monsoon Rain Alert in Corridor 2</h4>
+                        <p>Tomatoes and perishable greens logged in Nodes 12–15 will take routing priority in CVRP dispatch batches today.</p>
+                    </article>
+                    <article class="news-item">
+                        <span class="news-badge badge-success">Logistics</span>
+                        <h4>Tata Ace Fleet Pool Expanded</h4>
+                        <p>18 new micro-freight vehicles onboarded with automated fuel advance escrow support.</p>
+                    </article>
+                    <article class="news-item">
+                        <span class="news-badge badge-info">Buyer Demand</span>
+                        <h4>Urban Retail Demand Surge</h4>
+                        <p>Direct institutional bulk orders received for Grade-A onions from suburban delivery hubs.</p>
+                    </article>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- JavaScript Execution -->
+    <script src="scripte.js"></script>
+</body>
+</html>

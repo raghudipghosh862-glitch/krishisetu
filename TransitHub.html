@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSetu | TransitHub</title>
+    <link rel="stylesheet" href="stylee.css">
+    <style>
+        .transit-hero {
+            background: linear-gradient(135deg, #113027 0%, #1B4D3E 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .role-selector {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: -40px;
+            padding: 0 20px;
+        }
+
+        .role-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            width: 100%;
+            max-width: 300px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 2px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .role-card:hover {
+            transform: translateY(-5px);
+            border-color: #E5A93C;
+        }
+
+        .role-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+        
+        .role-title {
+            color: #111827;
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .role-desc {
+            color: #6B7280;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body style="background-color: #F3F4F6; margin: 0; font-family: sans-serif;">
+
+    <!-- Navigation -->
+    <nav class="main-nav-bar" style="background: #113027; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <div class="nav-brand" style="color: #E5A93C; font-size: 1.5rem; font-weight: 800;">🌾 KrishiSetu</div>
+        <div class="nav-links" style="display: flex; gap: 20px;">
+            <a href="Index3.html" style="color: white; text-decoration: none; font-weight: 600;">Home</a>
+            <a href="log-harvest.html" style="color: white; text-decoration: none; font-weight: 600;">Log Harvest</a>
+            <a href="TransitHub.html" style="color: #E5A93C; text-decoration: none; font-weight: 600;">TransitHub</a>
+            <a href="profile.html" style="color: white; text-decoration: none; font-weight: 600;">Group Leader</a>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="transit-hero">
+        <h1 style="font-size: 2.5rem; margin-bottom: 16px; color: #E5A93C;">TransitHub Logistics</h1>
+        <p style="font-size: 1.1rem; color: #A7F3D0; max-width: 600px; margin: 0 auto;">
+            Secure fleet booking, live driver tracking, and automated escrow payments for hyperlocal agricultural transport.
+        </p>
+    </header>
+
+    <!-- Role Selection -->
+    <main class="role-selector">
+        <div class="role-card" onclick="openPortal('leader')">
+            <div class="role-icon">🧑‍🌾</div>
+            <div class="role-title">Group Leader</div>
+            <div class="role-desc">Book transport, track shipments, and release escrow payments.</div>
+        </div>
+        
+        <div class="role-card" onclick="openPortal('company')">
+            <div class="role-icon">🏢</div>
+            <div class="role-title">Transport Company</div>
+            <div class="role-desc">Manage fleet, accept bookings, and assign drivers to routes.</div>
+        </div>
+
+        <div class="role-card" onclick="openPortal('driver')">
+            <div class="role-icon">🚚</div>
+            <div class="role-title">Driver Portal</div>
+            <div class="role-desc">View assigned routes, update status, and transmit live location.</div>
+        </div>
+    </main>
+    <!-- ========================================= -->
+    <!-- TRANSPORT COMPANY MODAL                   -->
+    <!-- ========================================= -->
+    <div id="companyModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+        <div style="background: white; width: 100%; max-width: 500px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+            
+            <div style="background: #113027; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #E5A93C;">🏢 Transport Company Portal</h3>
+                <button onclick="closeModal('companyModal')" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+
+            <div style="padding: 24px;">
+                <!-- Company Login Form -->
+                <form id="companyLoginForm">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Contact Number</label>
+                        <input type="tel" id="compLoginPhone" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Password</label>
+                        <input type="password" id="compLoginPass" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                    </div>
+                    <button type="submit" style="width: 100%; padding: 14px; background: #E5A93C; color: #113027; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 1rem;">Login</button>
+                    <p style="text-align: center; margin-top: 16px; font-size: 0.9rem;">
+                        New partner? <a href="#" onclick="toggleCompanyForm('register')" style="color: #1B4D3E; font-weight: 700;">Register your fleet</a>
+                    </p>
+                    <p style="text-align: center; margin-top: 12px; font-size: 0.85rem;">
+                        <a href="#" onclick="openResetModal('company')" style="color: #6B7280; text-decoration: underline;">Forgot Password?</a>
+                    </p>
+                </form>
+
+                <!-- Company Registration Form (Hidden by default) -->
+                <form id="companyRegForm" style="display: none;">
+                    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Company Name</label>
+                            <input type="text" id="regCompName" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Owner Name</label>
+                            <input type="text" id="regOwnerName" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Contact Number</label>
+                            <input type="tel" id="regCompPhone" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Base Location</label>
+                            <input type="text" id="regLocation" placeholder="City/District" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Fleet Size</label>
+                            <input type="number" id="regFleet" min="1" placeholder="Number of trucks" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Rate per KM (₹)</label>
+                            <input type="number" id="regRate" step="0.50" placeholder="e.g. 40.00" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Secure Password</label>
+                        <input type="password" id="regCompPass" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                    </div>
+
+                    <button type="submit" style="width: 100%; padding: 14px; background: #113027; color: #E5A93C; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 1rem;">Register Company</button>
+                    <p style="text-align: center; margin-top: 16px; font-size: 0.9rem;">
+                        Already registered? <a href="#" onclick="toggleCompanyForm('login')" style="color: #1B4D3E; font-weight: 700;">Login here</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- DRIVER PORTAL MODAL                       -->
+    <!-- ========================================= -->
+    <div id="driverModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+        <div style="background: white; width: 100%; max-width: 400px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+            
+            <div style="background: #1B4D3E; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #A7F3D0;">🚚 Driver Portal</h3>
+                <button onclick="closeModal('driverModal')" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+
+            <div style="padding: 24px;">
+                <!-- Driver Login Form -->
+                <form id="driverLoginForm">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Mobile Number</label>
+                        <input type="tel" id="drvLoginPhone" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Password</label>
+                        <input type="password" id="drvLoginPass" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                    </div>
+                    <button type="submit" style="width: 100%; padding: 14px; background: #1B4D3E; color: white; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 1rem;">Login</button>
+                    <p style="text-align: center; margin-top: 16px; font-size: 0.9rem;">
+                        New driver? <a href="#" onclick="toggleDriverForm('register')" style="color: #E5A93C; font-weight: 700;">Create account</a>
+                    </p>
+                    <p style="text-align: center; margin-top: 12px; font-size: 0.85rem;">
+                        <a href="#" onclick="openResetModal('driver')" style="color: #6B7280; text-decoration: underline;">Forgot Password?</a>
+                    </p>
+                </form>
+
+                <!-- Driver Registration Form -->
+                <form id="driverRegForm" style="display: none;">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Full Name</label>
+                        <input type="text" id="regDrvName" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Mobile Number</label>
+                        <input type="tel" id="regDrvPhone" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Transport Company (Optional)</label>
+                        <select id="regDrvCompany" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;">
+                            <option value="">Independent Local Driver (No Company)</option>
+                            <!-- Django will inject companies here -->
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Create Password</label>
+                        <input type="password" id="regDrvPass" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                    </div>
+
+                    <button type="submit" style="width: 100%; padding: 14px; background: #E5A93C; color: #113027; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 1rem;">Register as Driver</button>
+                    <p style="text-align: center; margin-top: 16px; font-size: 0.9rem;">
+                        Already registered? <a href="#" onclick="toggleDriverForm('login')" style="color: #1B4D3E; font-weight: 700;">Login here</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- ========================================= -->
+    <!-- FORGOT PASSWORD MODAL                     -->
+    <!-- ========================================= -->
+    <div id="forgotPasswordModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+        <div style="background: white; width: 100%; max-width: 400px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+            
+            <div style="background: #991B1B; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0;">Account Recovery</h3>
+                <button onclick="closeModal('forgotPasswordModal')" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+
+            <div style="padding: 24px;">
+                <p style="color: #6B7280; font-size: 0.9rem; margin-top: 0; margin-bottom: 20px;">Enter your registered mobile number to reset your password.</p>
+                
+                <form id="forgotPasswordForm">
+                    <input type="hidden" id="resetRole" value="">
+                    
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Registered Mobile Number</label>
+                        <input type="tel" id="resetPhone" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">New Password</label>
+                        <input type="password" id="resetNewPass" style="width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 6px; box-sizing: border-box;" required>
+                    </div>
+                    
+                    <button type="submit" style="width: 100%; padding: 14px; background: #991B1B; color: white; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 1rem;">Reset Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openResetModal(role) {
+            document.getElementById('resetRole').value = role;
+            // Hide the login modals to keep the screen clean
+            closeModal('companyModal');
+            closeModal('driverModal');
+            document.getElementById('forgotPasswordModal').style.display = 'flex';
+        }
+
+        document.getElementById('forgotPasswordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const payload = {
+                role: document.getElementById('resetRole').value,
+                phone_number: document.getElementById('resetPhone').value,
+                new_password: document.getElementById('resetNewPass').value
+            };
+
+            const btn = this.querySelector('button[type="submit"]');
+            btn.innerText = "Resetting...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/reset-password/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert("Password reset successfully! You can now log in.");
+                    closeModal('forgotPasswordModal');
+                    this.reset();
+                    // Re-open the correct login modal
+                    if (payload.role === 'driver') document.getElementById('driverModal').style.display = 'flex';
+                    if (payload.role === 'company') document.getElementById('companyModal').style.display = 'flex';
+                } else {
+                    alert("Account not found. Please check your mobile number.");
+                }
+            } catch (error) {
+                alert("Cannot connect to server.");
+            } finally {
+                btn.innerText = "Reset Password";
+                btn.disabled = false;
+            }
+        });
+        function openPortal(role) {
+            if (role === 'company') {
+                document.getElementById('companyModal').style.display = 'flex';
+            } else if (role === 'leader') {
+                window.location.href = "book-transit.html";
+            } else if (role === 'driver') {
+                document.getElementById('driverModal').style.display = 'flex';
+                fetchCompaniesForDropdown(); // Grab the companies when modal opens
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function toggleCompanyForm(mode) {
+            if (mode === 'register') {
+                document.getElementById('companyLoginForm').style.display = 'none';
+                document.getElementById('companyRegForm').style.display = 'block';
+            } else {
+                document.getElementById('companyRegForm').style.display = 'none';
+                document.getElementById('companyLoginForm').style.display = 'block';
+            }
+        }
+        function toggleDriverForm(mode) {
+            if (mode === 'register') {
+                document.getElementById('driverLoginForm').style.display = 'none';
+                document.getElementById('driverRegForm').style.display = 'block';
+            } else {
+                document.getElementById('driverRegForm').style.display = 'none';
+                document.getElementById('driverLoginForm').style.display = 'block';
+            }
+        }
+
+        async function fetchCompaniesForDropdown() {
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/get-companies/");
+                if (response.ok) {
+                    const companies = await response.json();
+                    const dropdown = document.getElementById('regDrvCompany');
+                    // Keep the first default option, remove any previously loaded ones
+                    dropdown.innerHTML = '<option value="">Independent Local Driver (No Company)</option>';
+                    companies.forEach(company => {
+                        dropdown.insertAdjacentHTML('beforeend', `<option value="${company.id}">${company.company_name}</option>`);
+                    });
+                }
+            } catch (e) { console.error("Error loading companies:", e); }
+        }
+
+        // Driver Registration API Call
+        document.getElementById('driverRegForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const payload = {
+                full_name: document.getElementById('regDrvName').value,
+                contact_number: document.getElementById('regDrvPhone').value,
+                password: document.getElementById('regDrvPass').value,
+            };
+            
+            // Only add transport_company if they selected one
+            const companyId = document.getElementById('regDrvCompany').value;
+            if (companyId) {
+                payload.transport_company = companyId;
+            }
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/register-driver/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert("Driver Account Created! You can now log in.");
+                    toggleDriverForm('login');
+                    this.reset();
+                } else {
+                    alert("Registration failed. This mobile number might be in use.");
+                }
+            } catch (error) {
+                alert("Cannot connect to server.");
+            }
+        });
+        // Driver Login API Call
+        document.getElementById('driverLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('drvLoginPhone').value;
+            const password = document.getElementById('drvLoginPass').value;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/login-driver/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone_number: phone, password: password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Save driver session to browser
+                    localStorage.setItem('driver_session', JSON.stringify(data));
+                    alert(`Welcome, ${data.driver_name}!`);
+                    // Redirect to driver dashboard
+                    window.location.href = "driver-dashboard.html";
+                } else {
+                    alert("Invalid mobile number or password.");
+                }
+            } catch (error) {
+                alert("Cannot connect to server.");
+            }
+        });
+
+        // Transport Company Registration Logic (This replaces the old alert placeholder)
+        document.getElementById('companyRegForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const payload = {
+                company_name: document.getElementById('regCompName').value,
+                owner_name: document.getElementById('regOwnerName').value,
+                contact_number: document.getElementById('regCompPhone').value,
+                location: document.getElementById('regLocation').value,
+                fleet_size: document.getElementById('regFleet').value,
+                rate_per_km: document.getElementById('regRate').value,
+                password: document.getElementById('regCompPass').value
+            };
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/register-company/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert("Company Registered Successfully! You can now log in.");
+                    toggleCompanyForm('login');
+                    this.reset();
+                } else {
+                    const errorData = await response.json();
+                    console.error("Registration failed:", errorData);
+                    alert("Registration failed. This phone number might already be in use.");
+                }
+            } catch (error) {
+                console.error("Network Error:", error);
+                alert("Cannot connect to backend server.");
+            }
+        });
+
+        // Transport Company Login Logic
+        document.getElementById('companyLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('compLoginPhone').value;
+            const password = document.getElementById('compLoginPass').value;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/login-company/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone_number: phone, password: password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Save company session to browser
+                    localStorage.setItem('company_session', JSON.stringify(data));
+                    
+                    alert(`Welcome back, ${data.company_name}!`);
+                    
+                    // Redirect to their dashboard (we will build this next!)
+                    window.location.href = "company-dashboard.html";
+                } else {
+                    alert("Invalid phone number or password. Please try again.");
+                }
+            } catch (error) {
+                console.error("Network Error:", error);
+                alert("Cannot connect to backend server.");
+            }
+        });
+    </script>
+</body>
+</html>

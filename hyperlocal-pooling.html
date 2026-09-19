@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSetu | Hyperlocal Pooling</title>
+    <link rel="icon" href="data:,">
+    
+    <!-- Link to your global CSS for the Navbar and fonts -->
+    <link rel="stylesheet" href="Stylee.css">
+    
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* Form Specific Styles */
+        .pooling-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-dark, #1F2937);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color, #E5E7EB);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--krishi-green, #1B4D3E);
+            box-shadow: 0 0 0 3px rgba(27, 77, 62, 0.1);
+        }
+
+        .btn-submit {
+            background-color: var(--krishi-green, #1B4D3E);
+            color: #FFFFFF;
+            border: none;
+            padding: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--krishi-green-hover, #143B2F);
+        }
+
+        /* Fix Leaflet tile rendering */
+        .leaflet-pane img {
+            max-width: none !important;
+            box-sizing: content-box !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Navigation Bar -->
+    <nav class="main-nav-bar">
+        <div class="nav-brand">🌾 KrishiSetu</div>
+        <div class="nav-links">
+            <a href="Index3.html">Home</a>
+            <a href="log-harvest.html">Log Harvest</a>
+            <a href="hyperlocal-pooling.html" class="active">Hyperlocal Pooling</a>
+            <a href="TransitHub.html">TransitHub</a>
+            <a href="krishi-connect.html">Krishi Connect</a>
+            <a href="grievance.html">Grievance</a>
+            <a href="profile.html">Group Leader Profile</a>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard Content -->
+    <main class="dashboard-container">
+
+        <!-- Top Metrics specific to Pooling -->
+        <section class="section-block">
+            <div class="section-header">
+                <h2>Node 42 Cluster Status</h2>
+                <span class="live-pill"><span class="dot"></span> 2km Radius Active</span>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card card-green">
+                    <h3>Active Pooled Harvest</h3>
+                    <div class="metric-value">1,250 <span style="font-size: 1.2rem; color: #6B7280;">kg</span></div>
+                    <div class="metric-desc text-green">↑ 300kg added today</div>
+                </div>
+                <div class="metric-card card-gold">
+                    <h3>Trucks in Transit</h3>
+                    <div class="metric-value">2</div>
+                    <div class="metric-desc">Next ETA: 45 mins</div>
+                </div>
+                <div class="metric-card card-blue">
+                    <h3>Pending Escrow Advance</h3>
+                    <div class="metric-value">₹4,500</div>
+                    <div class="metric-desc">Awaiting driver POD (Proof of Delivery)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Two-Column Layout: Map and Form -->
+        <div class="two-column-layout">
+            
+            <!-- Left: Locked Map -->
+            <section class="panel-box">
+                <h2>Live CVRP Dispatch Map</h2>
+                <div id="map" style="height: 400px; border-radius: 8px; z-index: 1;"></div>
+            </section>
+
+            <!-- Right: Log Harvest Form -->
+            <section class="panel-box">
+                <h2>Log Offline Farmer Crop</h2>
+                <form id="harvestForm" class="pooling-form">
+                    <div class="form-group">
+                        <label>Farmer ID</label>
+                        <input type="text" id="farmerId" class="form-control" placeholder="e.g. F-9821" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Farmer Name</label>
+                        <input type="text" id="farmerName" class="form-control" placeholder="e.g. Ramesh" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Crop Type (Perishable Priority)</label>
+                        <select class="form-control">
+                            <option>Tomatoes (High Priority)</option>
+                            <option>Onions (Medium Priority)</option>
+                            <option>Wheat (Low Priority)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Weight (kg)</label>
+                        <input type="number" id="weight" class="form-control" placeholder="e.g. 150" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">Add to Local Pool</button>
+                </form>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // 1. Initialize Map (Locked position as requested previously)
+            const map = L.map('map', { 
+                zoomControl: false,
+                dragging: false,          
+                touchZoom: false,         
+                scrollWheelZoom: false,   
+                doubleClickZoom: false,   
+                boxZoom: false,           
+                keyboard: false           
+            }).setView([19.9975, 73.7898], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            // 2. Custom Icons
+            const truckIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/726/726455.png',
+                iconSize: [28, 28]
+            });
+            const farmerIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/181/181596.png',
+                iconSize: [20, 20]
+            });
+
+            // 3. Add Markers
+            L.marker([19.9975, 73.7898], {icon: truckIcon}).addTo(map).bindPopup("Escrow Fleet: Tata Ace");
+            L.marker([20.0050, 73.7950], {icon: farmerIcon}).addTo(map).bindPopup("Node A: 300kg Tomatoes");
+            L.marker([19.9900, 73.7800], {icon: farmerIcon}).addTo(map).bindPopup("Node B: 450kg Onions");
+
+            // 4. Draw Route Line connecting the cluster
+            const latlngs = [[20.0050, 73.7950], [19.9900, 73.7800], [19.9975, 73.7898]];
+            L.polyline(latlngs, {color: '#E5A93C', weight: 4, dashArray: '5, 5'}).addTo(map);
+
+            // 5. Form Submission Logic
+            document.getElementById('harvestForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const fId = document.getElementById('farmerId').value;
+                const fName = document.getElementById('farmerName').value;
+                const wt = document.getElementById('weight').value;
+                
+                if(fId && wt && fName) {
+                    alert(`Success! ${wt}kg logged for Farmer ${fName} (${fId}). The cluster weight has been updated.`);
+                    this.reset();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
